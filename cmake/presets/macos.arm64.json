@@ -1,0 +1,26 @@
+{
+  "version": 4,
+    "include": [
+    "base.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "macos.arm64",
+      "inherits": "base",
+      "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/macos/arm64/conan_toolchain.cmake",
+      "architecture": 
+      {
+        "value": "arm64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "ARIEO_HOST_OS": "macos",
+        "TARGET_TRIPLE": "arm64-apple-darwin",
+        "CMAKE_PREFIX_PATH": {
+          "type": "PATH",
+          "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/macos/arm64"
+        }
+      }
+    }
+  ]
+}

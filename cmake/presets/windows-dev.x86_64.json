@@ -1,0 +1,35 @@
+{
+  "version": 4,
+  "include": [
+    "base.json"
+  ],
+  "configurePresets": [
+    {
+        "name": "windows-dev",
+        "inherits": "base",
+        "displayName": "Windows Development Configuration",
+        "description": "RelWithDebInfo build with development settings",
+        "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/windows/x86_64/conan_toolchain.cmake",
+        "architecture": {
+            "value": "x86_64",
+            "strategy": "external"
+        },
+        "environment": {
+            "VS_WORKSPACE": "${sourceDir}/.."
+        },
+        "cmakeExecutable": "${sourceDir}/cmake/cmake_wrapper_for_vscode.bat",
+        "cacheVariables": {
+            "ARIEO_BUILD_NAME": "windows-dev",
+            "ARIEO_HOST_OS": "windows",
+            "TARGET_TRIPLE": "x86_64-windows-msvc",
+            "CMAKE_BUILD_TYPE:STRING": "RelWithDebInfo",
+            "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+            "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
+            "CMAKE_PREFIX_PATH": {
+                "type": "PATH",
+                "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/windows/x86_64"
+            }
+        }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "version": 4,
+    "include": [
+    "base.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "raspberry.armv8",
+      "inherits": "base",
+      "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/raspberry/armv8/conan_toolchain.cmake",
+      "architecture": 
+      {
+        "value": "armv8",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "ARIEO_HOST_OS": "raspberry",
+        "TARGET_TRIPLE": "aarch64-linux-gnu",
+        "CMAKE_PREFIX_PATH": {
+          "type": "PATH",
+          "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/raspberry/armv8"
+        }
+      }
+    }
+  ]
+}

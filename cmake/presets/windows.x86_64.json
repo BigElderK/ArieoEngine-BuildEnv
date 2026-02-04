@@ -1,0 +1,26 @@
+{
+  "version": 4,
+  "include": [
+    "base.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "windows.x86_64",
+      "inherits": "base",
+      "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/windows/x86_64/conan_toolchain.cmake",
+      "architecture": 
+      {
+        "value": "x86_64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "ARIEO_HOST_OS": "windows",
+        "TARGET_TRIPLE": "x86_64-windows-msvc",
+        "CMAKE_PREFIX_PATH": {
+          "type": "PATH",
+          "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/windows/x86_64"
+        }
+      }
+    }
+  ]
+}
