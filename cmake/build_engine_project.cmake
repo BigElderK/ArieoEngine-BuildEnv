@@ -28,30 +28,30 @@ function(build_engine_project)
 
     # set prebuid patches based on preset
     if(ARGUMENT_PRESET STREQUAL "android.armv8")
-        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
+        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
     endif()
 
     if(ARGUMENT_PRESET STREQUAL "raspberry.armv8")
-        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
+        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
     endif()
 
     if(ARGUMENT_PRESET STREQUAL "ubuntu.x86_64")
-        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
+        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
     endif()
 
     if(ARGUMENT_PRESET STREQUAL "windows.x86_64")
-        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
+        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
     endif()
 
     if(ARGUMENT_PRESET STREQUAL "macos.arm64")
-        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
+        set(PREBUILD_BATCH $ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX})
     endif()
 
     ##########################################################################################
     # Generate CMakeUserPresets.json in source directory with resolved paths
-    set(FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER "$ENV{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}")
+    set(FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER "$ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}")
     # Convert to forward slashes (JSON and CMake both accept them on all platforms)
-    string(REPLACE "\\" "/" FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER "${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}")
+    string(REPLACE "\\" "/" FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER "${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}")
     file(WRITE "${ARGUMENT_SOURCE_CMAKE_LIST_DIR}/CMakeUserPresets.json"
 "{
     \"version\": 4,
@@ -61,13 +61,13 @@ function(build_engine_project)
         \"patch\": 0
     },
     \"include\": [
-        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/cmake/presets/base.json\",
-        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/cmake/presets/windows.x86_64.json\",
-        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/cmake/presets/macos.arm64.json\",
-        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/cmake/presets/ubuntu.x86_64.json\",
-        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/cmake/presets/raspberry.armv8.json\",
-        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/cmake/presets/android.armv8.json\",
-        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/cmake/presets/windows-dev.x86_64.json\"
+        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/presets/base.json\",
+        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/presets/windows.x86_64.json\",
+        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/presets/macos.arm64.json\",
+        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/presets/ubuntu.x86_64.json\",
+        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/presets/raspberry.armv8.json\",
+        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/presets/android.armv8.json\",
+        \"${FORMATTED_ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/presets/windows-dev.x86_64.json\"
     ]
 }
 ")
