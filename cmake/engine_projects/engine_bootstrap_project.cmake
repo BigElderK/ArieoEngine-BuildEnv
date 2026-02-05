@@ -28,7 +28,6 @@ function(arieo_bootstrap_project target_project)
 
     # Create target
     add_executable(${target_project})
-    add_dependencies(ArieoEngine ${target_project})
     
     if(DEFINED ARGUMENT_ALIAS)
         add_executable(${ARGUMENT_ALIAS} ALIAS ${target_project})

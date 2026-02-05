@@ -7,7 +7,7 @@
     {
       "name": "android.armv8",
       "inherits": "base",
-      "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/android/armv8/conan_toolchain.cmake",
+      "toolchainFile": "$env{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/android.armv8/conan_toolchain.cmake",
       "architecture": 
       {
         "value": "armv8",
@@ -19,7 +19,7 @@
         "TARGET_TRIPLE": "aarch64-linux-android35",
         "CMAKE_PREFIX_PATH": {
           "type": "PATH",
-          "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/android/armv8;$env{VS_WORKSPACE}/01_third_parties/gradle/_generated/android/arm64-v8a/cmake"
+          "value": "$env{ARIEO_PACKAGE_THIRDPARTIES_OUTPUT_FOLDER}/conan/android.armv8;$env{ARIEO_PACKAGE_THIRDPARTIES_OUTPUT_FOLDER}/gradle/android/arm64-v8a/cmake"
         }
       }
     }

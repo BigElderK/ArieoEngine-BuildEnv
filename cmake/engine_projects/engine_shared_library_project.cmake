@@ -28,7 +28,6 @@ function(arieo_shared_library_project target_project)
 
     # Create target
     add_library(${target_project} MODULE)
-    add_dependencies(ArieoEngine ${target_project})
     
     if(DEFINED ARGUMENT_ALIAS)
         add_library(${ARGUMENT_ALIAS} ALIAS ${target_project})

@@ -7,7 +7,7 @@
     {
       "name": "windows.x86_64",
       "inherits": "base",
-      "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/windows/x86_64/conan_toolchain.cmake",
+      "toolchainFile": "$env{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/windows.x86_64/conan_toolchain.cmake",
       "architecture": 
       {
         "value": "x86_64",
@@ -18,7 +18,7 @@
         "TARGET_TRIPLE": "x86_64-windows-msvc",
         "CMAKE_PREFIX_PATH": {
           "type": "PATH",
-          "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/windows/x86_64"
+          "value": "$env{ARIEO_PACKAGE_THIRDPARTIES_OUTPUT_FOLDER}/conan/windows.x86_64"
         }
       }
     }

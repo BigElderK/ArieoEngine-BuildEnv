@@ -4,7 +4,6 @@ function(arieo_static_library_project target_project)
     set(oneValueArgs 
         ALIAS
         MODULE_CONFIG_FILE
-        AST_GENERATE_FOLDER
         NATIVE_CODE_GENERATE_FOLDER
     )
 
@@ -28,7 +27,6 @@ function(arieo_static_library_project target_project)
 
     # Create target
     add_library(${target_project} STATIC)
-    add_dependencies(ArieoEngine ${target_project})
     
     if(DEFINED ARGUMENT_ALIAS)
         add_library(${ARGUMENT_ALIAS} ALIAS ${target_project})
@@ -109,7 +107,7 @@ function(arieo_static_library_project target_project)
     set_target_properties(
         ${target_project}
         PROPERTIES 
-            ARCHIVE_OUTPUT_DIRECTORY ${ARIEO_LIBS_OUTPUT_DIRECTORY}
+            ARCHIVE_OUTPUT_DIRECTORY ${TARGET_PROJECT_OUTPUT_FOLDER}
     )
 
     # Copy external libs to libs folder
@@ -130,9 +128,9 @@ function(arieo_static_library_project target_project)
         foreach(src_external_lib IN LISTS default_external_libs)
             # get filename with extension from path
             get_filename_component(src_lib_filename ${src_external_lib} NAME)
-            set(dest_external_lib "${ARIEO_LIBS_OUTPUT_DIRECTORY}/${src_lib_filename}")
+            set(dest_external_lib "${TARGET_PROJECT_OUTPUT_FOLDER}/${src_lib_filename}")
 
-            message(STATUS "Copying external lib ${src_lib_filename} to ${ARIEO_LIBS_OUTPUT_DIRECTORY}/${src_lib_filename}")
+            message(STATUS "Copying external lib ${src_lib_filename} to ${TARGET_PROJECT_OUTPUT_FOLDER}/${src_lib_filename}")
 
             add_custom_command(
                 TARGET ${target_project} POST_BUILD

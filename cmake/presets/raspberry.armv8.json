@@ -7,7 +7,7 @@
     {
       "name": "raspberry.armv8",
       "inherits": "base",
-      "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/raspberry/armv8/conan_toolchain.cmake",
+      "toolchainFile": "$env{ARIEO_PACKAGE_BUILDENV_OUTPUT_FOLDER}/conan/host/raspberry.armv8/conan_toolchain.cmake",
       "architecture": 
       {
         "value": "armv8",
@@ -18,7 +18,7 @@
         "TARGET_TRIPLE": "aarch64-linux-gnu",
         "CMAKE_PREFIX_PATH": {
           "type": "PATH",
-          "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/raspberry/armv8"
+          "value": "$env{ARIEO_PACKAGE_THIRDPARTIES_OUTPUT_FOLDER}/conan/raspberry.armv8"
         }
       }
     }

@@ -28,7 +28,6 @@ function(arieo_interface_linker_project target_project)
 
     # Create target as shared library
     add_library(${target_project} SHARED)
-    add_dependencies(ArieoEngine ${target_project})
     
     if(DEFINED ARGUMENT_ALIAS)
         add_library(${ARGUMENT_ALIAS} ALIAS ${target_project})

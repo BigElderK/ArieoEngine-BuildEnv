@@ -4,17 +4,11 @@
     {
       "name": "base",
       "generator": "Ninja",
-      "toolchainFile": "$env{VS_WORKSPACE}/00_build_env/conan/_generated/host/${presetName}/conan_toolchain.cmake",
-      "binaryDir": "$env{VS_WORKSPACE}/00_build_env/_build/engine/${presetName}/default",
       "cacheVariables": {
         "ARIEO_BUILD_NAME": "${presetName}",
         "ARIEO_HOST_OS": "Unknown",
         "TARGET_TRIPLE": "Unknown",
-        "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
-        "CMAKE_PREFIX_PATH": {
-          "type": "PATH",
-          "value": "$env{VS_WORKSPACE}/01_third_parties/conan/_generated/${presetName}"
-        }
+        "CMAKE_POLICY_DEFAULT_CMP0091": "NEW"
       }
     }
   ]
