@@ -78,27 +78,30 @@ function(generate_conan_toolchain_profile)
             message(LOG "Make ${SH_FILE} executable")
         endforeach()
     endif()
+
+    # Copy conanfile.txt to OUTPUT_FOLDER
+    file(COPY ${ARGUMENT_CONAN_PROFILE_FILE} DESTINATION ${ARGUMENT_OUTPUT_FOLDER})
 endfunction()
 
 
 if (ARIEO_PACKAGE_BUILDENV_HOST_PRESET STREQUAL "android.armv8")
     generate_conan_toolchain_profile(
         CONAN_PROFILE_FILE ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.android.armv8.txt
-        OUTPUT_FOLDER ${INSTALL_FOLDER}/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
+        OUTPUT_FOLDER ${INSTALL_FOLDER}/conan/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
     )
 endif()
 
 if (ARIEO_PACKAGE_BUILDENV_HOST_PRESET STREQUAL "raspberry.armv8")
     generate_conan_toolchain_profile(
         CONAN_PROFILE_FILE ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.raspberry.armv8.txt
-        OUTPUT_FOLDER ${INSTALL_FOLDER}/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
+        OUTPUT_FOLDER ${INSTALL_FOLDER}/conan/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
     )
 endif()
 
 if (ARIEO_PACKAGE_BUILDENV_HOST_PRESET STREQUAL "ubuntu.x86_64")
     generate_conan_toolchain_profile(
         CONAN_PROFILE_FILE ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.ubuntu.x86_64.txt
-        OUTPUT_FOLDER ${INSTALL_FOLDER}/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
+        OUTPUT_FOLDER ${INSTALL_FOLDER}/conan/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
     )
 endif()
 
@@ -107,7 +110,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     if (ARIEO_PACKAGE_BUILDENV_HOST_PRESET STREQUAL "windows.x86_64")
         generate_conan_toolchain_profile(
             CONAN_PROFILE_FILE ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.windows.x86_64.txt
-            OUTPUT_FOLDER ${INSTALL_FOLDER}/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
+            OUTPUT_FOLDER ${INSTALL_FOLDER}/conan/host/${ARIEO_PACKAGE_BUILDENV_HOST_PRESET}
         )
     endif()
 else()
@@ -125,3 +128,6 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
 else()
     #message(FATAL_ERROR "macOS platform only supports Darwin host system.")
 endif()
+
+# Copy cmake folder to INSTALL_FOLDER
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/cmake DESTINATION ${INSTALL_FOLDER})
