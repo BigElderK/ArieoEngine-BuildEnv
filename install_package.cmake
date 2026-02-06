@@ -143,6 +143,8 @@ file(WRITE "${INSTALL_FOLDER}/cmake/build_environment.cmake"
 "include(\"${CMAKE_CURRENT_LIST_DIR}/cmake/engine_project.cmake\")\n"
 "include(\"${CMAKE_CURRENT_LIST_DIR}/cmake/install_engine_project.cmake\")\n"
 "include(\"${CMAKE_CURRENT_LIST_DIR}/cmake/build_engine_project.cmake\")\n"
+"include(\"${CMAKE_CURRENT_LIST_DIR}/cmake/package/build_engine_project_package.cmake\")\n"
+"include(\"${CMAKE_CURRENT_LIST_DIR}/cmake/package/install_engine_project_package.cmake\")\n"
 )
 
 ##########################################################################################
@@ -167,3 +169,23 @@ file(WRITE "${INSTALL_FOLDER}/cmake/CMakePresets.json"
 }
 ")
 message(STATUS "Generated CMakeUserPresets.json in ${ARGUMENT_SOURCE_CMAKE_LIST_DIR}")
+
+##########################################################################################
+# Generate wrapper file for build_engine_project_package.cmake
+file(WRITE "${INSTALL_FOLDER}/cmake/package/build_engine_project_package.cmake"
+"cmake_minimum_required(VERSION 3.20)\n"
+"\n"
+"# Include the build package function\n"
+"include(${CMAKE_CURRENT_LIST_DIR}/cmake/package/build_engine_project_package.cmake)\n"
+)
+message(STATUS "Generated build_engine_project_package.cmake wrapper")
+
+##########################################################################################
+# Generate wrapper file for install_engine_project_package.cmake
+file(WRITE "${INSTALL_FOLDER}/cmake/package/install_engine_project_package.cmake"
+"cmake_minimum_required(VERSION 3.20)\n"
+"\n"
+"# Include the install package function\n"
+"include(${CMAKE_CURRENT_LIST_DIR}/cmake/package/install_engine_project_package.cmake)\n"
+)
+message(STATUS "Generated install_engine_project_package.cmake wrapper")
