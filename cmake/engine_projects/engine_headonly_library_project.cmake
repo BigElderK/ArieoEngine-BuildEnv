@@ -28,12 +28,16 @@ function(arieo_headonly_library_project target_project)
         find_package(${ARGUMENT_PACKAGE} REQUIRED)
     endforeach()
 
-    # Set public include directories
-    target_include_directories(
-        ${target_project}
-        INTERFACE 
-            ${ARGUMENT_PUBLIC_INCLUDE_FOLDERS}
-    )
+    # Set public include directories using generator expressions
+    # INTERFACE libraries require generator expressions to distinguish build vs install paths
+    foreach(INCLUDE_FOLDER ${ARGUMENT_PUBLIC_INCLUDE_FOLDERS})
+        target_include_directories(
+            ${target_project}
+            INTERFACE 
+                $<BUILD_INTERFACE:${INCLUDE_FOLDER}>
+                $<INSTALL_INTERFACE:include>
+        )
+    endforeach()
 
     message(STATUS "Created header-only library: ${target_project}")
 

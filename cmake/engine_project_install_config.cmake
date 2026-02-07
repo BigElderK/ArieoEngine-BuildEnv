@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.31)
 
-# Include CMake helpers for package config generation
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-
 # ==================== Reusable Install Configuration Function ====================
 # This function configures CMake installation for a target project
 # Handles: library installation, header installation, target export, and config file generation
 function(arieo_engine_project_install_configure target_project)
+    # Include CMake helpers for package config generation
+    # These are included here (not at file scope) to avoid warnings when 
+    # this file is included early, before project() enables languages
+    include(GNUInstallDirs)
+    include(CMakePackageConfigHelpers)
+    
     set(oneValueArgs
         LIBRARY_TYPE  # STATIC, SHARED, or empty for header-only
     )
