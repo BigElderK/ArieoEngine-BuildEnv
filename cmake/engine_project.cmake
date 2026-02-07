@@ -62,6 +62,5 @@ function(arieo_engine_project target_project)
     arieo_engine_project_install_configure(
         ${target_project}
         LIBRARY_TYPE ${ARGUMENT_PROJECT_TYPE}
-        PUBLIC_INCLUDE_FOLDERS ${ARGUMENT_PUBLIC_INCLUDE_FOLDERS}
     )
 endfunction()

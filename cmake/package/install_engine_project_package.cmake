@@ -76,7 +76,7 @@ function(install_cmake_project_package)
     message(STATUS "================================================================")
 
     # Prepare install command
-    set(CMAKE_INSTALL_CMD ${CMAKE_COMMAND} --install ${ARGUMENT_BUILD_FOLDER})
+    set(CMAKE_INSTALL_CMD )
     set(CMAKE_INSTALL_CMD ${CMAKE_INSTALL_CMD} --prefix ${ARGUMENT_INSTALL_PREFIX})
     set(CMAKE_INSTALL_CMD ${CMAKE_INSTALL_CMD} --config ${ARGUMENT_BUILD_TYPE})
     
