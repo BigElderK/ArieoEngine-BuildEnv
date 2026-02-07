@@ -21,7 +21,7 @@ function(arieo_interface_project target_project)
         PRIVATE_INCLUDE_FOLDERS
         PRIVATE_LIB_FOLDERS
         INTERFACES
-        LIBS
+        PRIVATE_LIBS
         EXTERNAL_LIBS
     )
 
@@ -44,11 +44,11 @@ function(arieo_interface_project target_project)
     endforeach()
 
     # Add libs
-    if(DEFINED ARGUMENT_LIBS)
+    if(DEFINED ARGUMENT_PRIVATE_LIBS)
         target_link_libraries(
             ${target_project} 
             INTERFACE
-                ${ARGUMENT_LIBS}
+                ${ARGUMENT_PRIVATE_LIBS}
         )
     endif()
 

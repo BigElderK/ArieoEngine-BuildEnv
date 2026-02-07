@@ -15,7 +15,7 @@ function(arieo_plugin_project target_project)
         PRIVATE_INCLUDE_FOLDERS
         PRIVATE_LIB_FOLDERS
         INTERFACES
-        LIBS
+        PRIVATE_LIBS
         EXTERNAL_LIBS
     )
 
@@ -61,11 +61,11 @@ function(arieo_plugin_project target_project)
     endif()
 
     # Add libs
-    if(DEFINED ARGUMENT_LIBS)
+    if(DEFINED ARGUMENT_PRIVATE_LIBS)
         target_link_libraries(
             ${target_project} 
             PRIVATE
-                ${ARGUMENT_LIBS}
+                ${ARGUMENT_PRIVATE_LIBS}
         )
     endif()
 

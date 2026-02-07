@@ -14,7 +14,8 @@ function(arieo_static_library_project target_project)
         PRIVATE_INCLUDE_FOLDERS
         PRIVATE_LIB_FOLDERS
         INTERFACES
-        LIBS
+        PUBLIC_LIBS
+        PRIVATE_LIBS
         EXTERNAL_LIBS
     )
 
@@ -59,12 +60,21 @@ function(arieo_static_library_project target_project)
         )
     endif()
 
-    # Add libs
-    if(DEFINED ARGUMENT_LIBS)
+    # Add public libs (dependencies used in public headers)
+    if(DEFINED ARGUMENT_PUBLIC_LIBS)
+        target_link_libraries(
+            ${target_project} 
+            PUBLIC
+                ${ARGUMENT_PUBLIC_LIBS}
+        )
+    endif()
+
+    # Add private libs
+    if(DEFINED ARGUMENT_PRIVATE_LIBS)
         target_link_libraries(
             ${target_project} 
             PRIVATE
-                ${ARGUMENT_LIBS}
+                ${ARGUMENT_PRIVATE_LIBS}
         )
     endif()
 

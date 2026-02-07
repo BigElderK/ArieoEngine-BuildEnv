@@ -15,7 +15,8 @@ function(arieo_base_project target_project)
         PRIVATE_INCLUDE_FOLDERS
         PRIVATE_LIB_FOLDERS
         INTERFACES
-        LIBS
+        PUBLIC_LIBS
+        PRIVATE_LIBS
         EXTERNAL_LIBS
     )
 
@@ -60,12 +61,21 @@ function(arieo_base_project target_project)
         )
     endif()
 
-    # Add libs
-    if(DEFINED ARGUMENT_LIBS)
+    # Add public libs (dependencies used in public headers)
+    if(DEFINED ARGUMENT_PUBLIC_LIBS)
         target_link_libraries(
             ${target_project} 
             PUBLIC
-                ${ARGUMENT_LIBS}
+                ${ARGUMENT_PUBLIC_LIBS}
+        )
+    endif()
+
+    # Add private libs (default to PUBLIC for base project)
+    if(DEFINED ARGUMENT_PRIVATE_LIBS)
+        target_link_libraries(
+            ${target_project} 
+            PUBLIC
+                ${ARGUMENT_PRIVATE_LIBS}
         )
     endif()
 
@@ -100,11 +110,14 @@ function(arieo_base_project target_project)
             ${default_source_files})
 
     # Set output directories and include paths
-    target_include_directories(
-        ${target_project}
-        PUBLIC 
-            ${ARGUMENT_PUBLIC_INCLUDE_FOLDERS}
-    )
+    if(DEFINED ARGUMENT_PUBLIC_INCLUDE_FOLDERS)
+        target_include_directories(
+            ${target_project}
+            PUBLIC 
+                $<BUILD_INTERFACE:${ARGUMENT_PUBLIC_INCLUDE_FOLDERS}>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        )
+    endif()
     set_target_properties(
         ${target_project}
         PROPERTIES 

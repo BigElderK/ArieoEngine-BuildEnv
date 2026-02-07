@@ -14,11 +14,15 @@ function(arieo_engine_project_install_configure target_project)
         LIBRARY_TYPE  # STATIC, SHARED, or empty for header-only
     )
     
+    set(multiValueArgs
+        PACKAGES  # List of required packages that consumers need to find
+    )
+    
     cmake_parse_arguments(
         ARG
         ""
         "${oneValueArgs}"
-        ""
+        "${multiValueArgs}"
         ${ARGN})
     
     # Determine package name for config files from ARIEO_CUR_PACKAGE_NAME environment variable
@@ -90,6 +94,14 @@ function(arieo_engine_project_install_configure target_project)
     
     # Set variable for template substitution
     set(target_project_name ${target_project})
+    
+    # Generate find_dependency calls for required packages
+    set(package_dependencies_code "")
+    if(ARG_PACKAGES)
+        foreach(pkg ${ARG_PACKAGES})
+            string(APPEND package_dependencies_code "find_dependency(${pkg} REQUIRED)\n")
+        endforeach()
+    endif()
     
     configure_package_config_file(
         ${CONFIG_TEMPLATE_FILE}
