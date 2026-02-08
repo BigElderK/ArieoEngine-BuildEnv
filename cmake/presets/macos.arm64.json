@@ -7,7 +7,7 @@
     {
       "name": "macos.arm64",
       "inherits": "base",
-      "toolchainFile": "$env{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/macos.arm64/conan_toolchain.cmake",
+      "toolchainFile": "$env{ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER}/conan/host/macos.arm64/conan_toolchain.cmake",
       "architecture": 
       {
         "value": "arm64",
@@ -18,7 +18,7 @@
         "TARGET_TRIPLE": "arm64-apple-darwin",
         "CMAKE_PREFIX_PATH": {
           "type": "PATH",
-          "value": "$env{ARIEO_PACKAGE_THIRDPARTIES_INSTALL_FOLDER}/conan/macos.arm64"
+          "value": "$env{ARIEO_THIRDPARTIES_PACKAGE_INSTALL_FOLDER}/conan/macos.arm64"
         }
       }
     }

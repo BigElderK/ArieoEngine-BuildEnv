@@ -25,13 +25,13 @@ function(arieo_engine_project_install_configure target_project)
         "${multiValueArgs}"
         ${ARGN})
     
-    # Determine package name for config files from ARIEO_CUR_PACKAGE_NAME environment variable
-    if(NOT DEFINED ENV{ARIEO_CUR_PACKAGE_NAME})
-        message(FATAL_ERROR "ARIEO_CUR_PACKAGE_NAME environment variable is not defined")
+    # Determine package name for config files from CUR_ARIEO_PACKAGE_NAME environment variable
+    if(NOT DEFINED ENV{CUR_ARIEO_PACKAGE_NAME})
+        message(FATAL_ERROR "CUR_ARIEO_PACKAGE_NAME environment variable is not defined")
     endif()
     
-    set(package_name "$ENV{ARIEO_CUR_PACKAGE_NAME}")
-    message(STATUS "Using package name from ARIEO_CUR_PACKAGE_NAME: ${package_name}")
+    set(package_name "$ENV{CUR_ARIEO_PACKAGE_NAME}")
+    message(STATUS "Using package name from CUR_ARIEO_PACKAGE_NAME: ${package_name}")
     
     # Get include directories from target properties
     get_target_property(PUBLIC_INCLUDE_DIRS ${target_project} INTERFACE_INCLUDE_DIRECTORIES)

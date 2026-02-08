@@ -107,23 +107,23 @@ endfunction()
 # Script execution: When called with cmake -P, read all parameters from environment variables
 if(CMAKE_SCRIPT_MODE_FILE)
     # Read parameters from environment variables
-    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET})
-        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET is not defined")
+    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET})
+        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_HOST_PRESET is not defined")
     endif()
     
-    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE})
-        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE is not defined")
+    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_TYPE})
+        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_TYPE is not defined")
     endif()
 
-    if(NOT DEFINED ENV{ARIEO_CUR_PACKAGE_BUILD_FOLDER} AND NOT DEFINED ENV{ARIEO_CUR_PACKAGE_INSTALL_FOLDER})
-        message(FATAL_ERROR "Neither ARIEO_CUR_PACKAGE_BUILD_FOLDER nor ARIEO_CUR_PACKAGE_INSTALL_FOLDER environment variables are defined. At least one must be defined.")
+    if(NOT DEFINED ENV{CUR_ARIEO_PACKAGE_BUILD_FOLDER} AND NOT DEFINED ENV{CUR_ARIEO_PACKAGE_INSTALL_FOLDER})
+        message(FATAL_ERROR "Neither CUR_ARIEO_PACKAGE_BUILD_FOLDER nor CUR_ARIEO_PACKAGE_INSTALL_FOLDER environment variables are defined. At least one must be defined.")
     endif()
 
     # Call the function
     # Note: Removed BUILD_TYPE from INSTALL_PREFIX to allow single config file for all build types
     install_cmake_project_package(
-        BUILD_FOLDER $ENV{ARIEO_CUR_PACKAGE_BUILD_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET}/$ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE}
-        BUILD_TYPE $ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE}
-        INSTALL_PREFIX $ENV{ARIEO_CUR_PACKAGE_INSTALL_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET}
+        BUILD_FOLDER $ENV{CUR_ARIEO_PACKAGE_BUILD_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}/$ENV{ARIEO_PACKAGE_BUILD_TYPE}
+        BUILD_TYPE $ENV{ARIEO_PACKAGE_BUILD_TYPE}
+        INSTALL_PREFIX $ENV{CUR_ARIEO_PACKAGE_INSTALL_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}
     )
 endif()

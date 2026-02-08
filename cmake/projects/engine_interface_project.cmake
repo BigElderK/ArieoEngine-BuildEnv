@@ -91,6 +91,50 @@ function(arieo_interface_project target_project)
         list(APPEND extra_include_folders ${ARGUMENT_PUBLIC_INCLUDE_FOLDERS})
     endif()
 
+    # Extract and add include directories from INTERFACES targets
+    # This is needed for code generation (clang) to find headers from dependent interfaces
+    if(DEFINED ARGUMENT_INTERFACES)
+        foreach(interface_target ${ARGUMENT_INTERFACES})
+            # Check if target exists
+            if(TARGET ${interface_target})
+                # Get include directories from the interface target
+                get_target_property(interface_includes ${interface_target} INTERFACE_INCLUDE_DIRECTORIES)
+                if(interface_includes)
+                    foreach(inc_dir ${interface_includes})
+                        # Handle generator expressions - extract BUILD_INTERFACE paths
+                        string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" cleaned_dir "${inc_dir}")
+                        string(REGEX REPLACE "\\$<INSTALL_INTERFACE:[^>]+>" "" cleaned_dir "${cleaned_dir}")
+                        if(cleaned_dir AND NOT cleaned_dir STREQUAL "")
+                            list(APPEND extra_include_folders ${cleaned_dir})
+                        endif()
+                    endforeach()
+                endif()
+            endif()
+        endforeach()
+    endif()
+
+    # Extract and add include directories from PRIVATE_LIBS targets
+    # This is needed for code generation (clang) to find headers from dependent interfaces
+    if(DEFINED ARGUMENT_PRIVATE_LIBS)
+        foreach(private_lib ${ARGUMENT_PRIVATE_LIBS})
+            # Check if target exists
+            if(TARGET ${private_lib})
+                # Get include directories from the target
+                get_target_property(lib_includes ${private_lib} INTERFACE_INCLUDE_DIRECTORIES)
+                if(lib_includes AND NOT lib_includes STREQUAL "lib_includes-NOTFOUND")
+                    foreach(inc_dir ${lib_includes})
+                        # Handle generator expressions - extract BUILD_INTERFACE paths
+                        string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" cleaned_dir "${inc_dir}")
+                        string(REGEX REPLACE "\\$<INSTALL_INTERFACE:[^>]+>" "" cleaned_dir "${cleaned_dir}")
+                        if(cleaned_dir AND NOT cleaned_dir STREQUAL "")
+                            list(APPEND extra_include_folders ${cleaned_dir})
+                        endif()
+                    endforeach()
+                endif()
+            endif()
+        endforeach()
+    endif()
+
     # print extra include folders for debugging
     message(STATUS "Extra include folders for ${target_project}: ${extra_include_folders}")
 

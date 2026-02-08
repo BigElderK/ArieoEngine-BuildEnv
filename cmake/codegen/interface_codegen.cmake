@@ -30,16 +30,16 @@ function(arieo_generate_interface_code target_project)
     endif()
     
     # Add base and core include directories first (for common types/macros and arieo::core)
-    if(NOT DEFINED ENV{ARIEO_PACKAGE_CORE_INSTALL_FOLDER})
-        message(FATAL_ERROR "ARIEO_PACKAGE_CORE_INSTALL_FOLDER environment variable not defined. Required for interface AST generation.")
+    if(NOT DEFINED ENV{ARIEO_CORE_PACKAGE_INSTALL_FOLDER})
+        message(FATAL_ERROR "ARIEO_CORE_PACKAGE_INSTALL_FOLDER environment variable not defined. Required for interface AST generation.")
     endif()
     
-    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET})
-        message(FATAL_ERROR "ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET environment variable not defined. Required for interface AST generation.")
+    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET})
+        message(FATAL_ERROR "ARIEO_PACKAGE_BUILD_HOST_PRESET environment variable not defined. Required for interface AST generation.")
     endif()
     
-    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE})
-        message(FATAL_ERROR "ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE environment variable not defined. Required for interface AST generation.")
+    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_TYPE})
+        message(FATAL_ERROR "ARIEO_PACKAGE_BUILD_TYPE environment variable not defined. Required for interface AST generation.")
     endif()
     
     # Build include directories list

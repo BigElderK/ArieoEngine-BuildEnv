@@ -16,8 +16,8 @@ Usage:
 
 Environment Variables Used:
   ARIEO_PACKAGE_ROOT_INSTALL_FOLDER - Base install folder (e.g., E:/ArieoEngine/packages/install)
-  ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET - Platform (e.g., windows.x86_64, ubuntu.x86_64)
-  ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE - Config (e.g., Debug, Release, RelWithDebInfo)
+  ARIEO_PACKAGE_BUILD_HOST_PRESET - Platform (e.g., windows.x86_64, ubuntu.x86_64)
+  ARIEO_PACKAGE_BUILD_TYPE - Config (e.g., Debug, Release, RelWithDebInfo)
 
 Alternative Parameters (if env vars not set):
   PACKAGES_ROOT  - Override base install folder
@@ -50,10 +50,10 @@ function(add_engine_packages_to_prefix_path)
     # Determine platform
     if(ARG_HOST_PRESET)
         set(HOST_PRESET "${ARG_HOST_PRESET}")
-    elseif(DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET})
-        set(HOST_PRESET "$ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET}")
+    elseif(DEFINED ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET})
+        set(HOST_PRESET "$ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}")
     else()
-        message(FATAL_ERROR "HOST_PRESET not specified and ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET not set")
+        message(FATAL_ERROR "HOST_PRESET not specified and ARIEO_PACKAGE_BUILD_HOST_PRESET not set")
     endif()
     
     # Verify packages root exists

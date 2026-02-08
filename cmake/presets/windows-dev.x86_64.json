@@ -9,7 +9,7 @@
         "inherits": "base",
         "displayName": "Windows Development Configuration",
         "description": "RelWithDebInfo build with development settings",
-        "toolchainFile": "$env{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/windows.x86_64/conan_toolchain.cmake",
+        "toolchainFile": "$env{ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER}/conan/host/windows.x86_64/conan_toolchain.cmake",
         "architecture": {
             "value": "x86_64",
             "strategy": "external"
@@ -27,7 +27,7 @@
             "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
             "CMAKE_PREFIX_PATH": {
                 "type": "PATH",
-                "value": "$env{ARIEO_PACKAGE_THIRDPARTIES_INSTALL_FOLDER}/conan/windows.x86_64"
+                "value": "$env{ARIEO_THIRDPARTIES_PACKAGE_INSTALL_FOLDER}/conan/windows.x86_64"
             }
         }
     }

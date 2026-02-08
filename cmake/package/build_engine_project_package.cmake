@@ -77,9 +77,9 @@ function(build_cmake_project_package)
             set(CMAKE_HOST_BATCH_SUFFIX .sh)
         endif()
 
-        # Try to find conan environment script from ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER
-        if(DEFINED ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER})
-            set(DETECTED_CONAN_SCRIPT "$ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX}")
+        # Try to find conan environment script from ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER
+        if(DEFINED ENV{ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER})
+            set(DETECTED_CONAN_SCRIPT "$ENV{ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER}/conan/host/${ARGUMENT_PRESET}/conanbuild${CMAKE_HOST_BATCH_SUFFIX}")
             if(EXISTS "${DETECTED_CONAN_SCRIPT}")
                 set(ARGUMENT_CONAN_ENV_SCRIPT "${DETECTED_CONAN_SCRIPT}")
                 message(STATUS "Auto-detected conan environment script: ${ARGUMENT_CONAN_ENV_SCRIPT}")
@@ -89,8 +89,8 @@ function(build_cmake_project_package)
 
     ##########################################################################################
     # Copy CMake presets if available
-    if(DEFINED ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER})
-        set(PRESETS_FILE "$ENV{ARIEO_PACKAGE_BUILDENV_INSTALL_FOLDER}/cmake/CMakePresets.json")
+    if(DEFINED ENV{ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER})
+        set(PRESETS_FILE "$ENV{ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER}/cmake/CMakePresets.json")
         if(EXISTS "${PRESETS_FILE}")
             execute_process(COMMAND ${CMAKE_COMMAND} -E copy
                 "${PRESETS_FILE}"
@@ -220,31 +220,31 @@ endfunction()
 # Script execution: When called with cmake -P, read all parameters from environment variables
 if(CMAKE_SCRIPT_MODE_FILE)
     # Get SOURCE_CMAKE_LIST_DIR from environment variable (set by Python build script)
-    if(NOT DEFINED ENV{ARIEO_CUR_PACKAGE_SOURCE_FOLDER})
-        message(FATAL_ERROR "Environment variable ARIEO_CUR_PACKAGE_SOURCE_FOLDER is not defined")
+    if(NOT DEFINED ENV{CUR_ARIEO_PACKAGE_SOURCE_FOLDER})
+        message(FATAL_ERROR "Environment variable CUR_ARIEO_PACKAGE_SOURCE_FOLDER is not defined")
     endif()
     
     # Read other parameters from environment variables
-    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET})
-        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET is not defined")
+    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET})
+        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_HOST_PRESET is not defined")
     endif()
     
-    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE})
-        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE is not defined")
+    if(NOT DEFINED ENV{ARIEO_PACKAGE_BUILD_TYPE})
+        message(FATAL_ERROR "Environment variable ARIEO_PACKAGE_BUILD_TYPE is not defined")
     endif()
     
     # Determine build folder based on package name pattern
-    # ARIEO_CUR_PACKAGE_BUILD_FOLDER is set for each package during build process
-    if(NOT DEFINED ENV{ARIEO_CUR_PACKAGE_BUILD_FOLDER})
-         message(FATAL_ERROR "Environment variable ARIEO_CUR_PACKAGE_BUILD_FOLDER is not defined")
+    # CUR_ARIEO_PACKAGE_BUILD_FOLDER is set for each package during build process
+    if(NOT DEFINED ENV{CUR_ARIEO_PACKAGE_BUILD_FOLDER})
+         message(FATAL_ERROR "Environment variable CUR_ARIEO_PACKAGE_BUILD_FOLDER is not defined")
     endif()
 
     # Call the function
     build_cmake_project_package(
-        SOURCE_CMAKE_LIST_DIR $ENV{ARIEO_CUR_PACKAGE_SOURCE_FOLDER}
-        PRESET $ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET}
-        BUILD_TYPE $ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE}
-        BUILD_FOLDER $ENV{ARIEO_CUR_PACKAGE_BUILD_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET}/$ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE}
-        OUTPUT_FOLDER $ENV{ARIEO_CUR_PACKAGE_BUILD_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET}/$ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE}/output
+        SOURCE_CMAKE_LIST_DIR $ENV{CUR_ARIEO_PACKAGE_SOURCE_FOLDER}
+        PRESET $ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}
+        BUILD_TYPE $ENV{ARIEO_PACKAGE_BUILD_TYPE}
+        BUILD_FOLDER $ENV{CUR_ARIEO_PACKAGE_BUILD_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}/$ENV{ARIEO_PACKAGE_BUILD_TYPE}
+        OUTPUT_FOLDER $ENV{CUR_ARIEO_PACKAGE_BUILD_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}/$ENV{ARIEO_PACKAGE_BUILD_TYPE}/output
     )
 endif()

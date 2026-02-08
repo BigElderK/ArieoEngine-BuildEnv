@@ -92,7 +92,7 @@ function(arieo_engine_project target_project)
     # add all engine package install folder to prefix
     add_engine_packages_to_prefix_path(
         PACKAGES_ROOT $ENV{ARIEO_PACKAGE_ROOT_INSTALL_FOLDER}
-        HOST_PRESET $ENV{ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET}
+        HOST_PRESET $ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}
     )
 
     # Dispatch to specialized function based on project type
