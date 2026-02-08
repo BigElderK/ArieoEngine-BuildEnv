@@ -527,21 +527,34 @@ def run_clang_ast_dump(
         result = subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,  # Ignore stderr completely
+            stderr=subprocess.PIPE,
             text=True,
             check=False
         )
         
-        # Write output to file even if clang had errors
+        # Print stderr if there are any errors or warnings
+        if result.stderr:
+            print(f"Clang stderr output:", file=sys.stderr)
+            print(result.stderr, file=sys.stderr)
+        
+        # Check if clang command failed
+        if result.returncode != 0:
+            error_msg = f"Clang command failed with return code {result.returncode}"
+            if result.stderr:
+                error_msg += f"\nStderr: {result.stderr}"
+            raise RuntimeError(error_msg)
+        
+        # Write output to file
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(result.stdout)
         
-        # Always return True - we'll try to post-process whatever we got
         return True
+    except subprocess.SubprocessError as e:
+        print(f"Error running clang subprocess: {e}", file=sys.stderr)
+        raise
     except Exception as e:
         print(f"Error running clang: {e}", file=sys.stderr)
-        # Still return True to continue with post-processing
-        return True
+        raise
 
 
 def extract_annotation_text(source_file: str, line: int, col: int) -> Optional[str]:
