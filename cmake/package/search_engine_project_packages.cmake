@@ -28,7 +28,6 @@ function(add_engine_packages_to_prefix_path)
     set(oneValueArgs
         PACKAGES_ROOT
         HOST_PRESET
-        BUILD_TYPE
     )
     
     cmake_parse_arguments(
@@ -57,18 +56,6 @@ function(add_engine_packages_to_prefix_path)
         message(FATAL_ERROR "HOST_PRESET not specified and ARIEO_PACKAGE_BUILD_SETTING_HOST_PRESET not set")
     endif()
     
-    # Determine build type
-    if(ARG_BUILD_TYPE)
-        set(BUILD_TYPE "${ARG_BUILD_TYPE}")
-    elseif(DEFINED ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE})
-        set(BUILD_TYPE "$ENV{ARIEO_PACKAGE_BUILD_SETTING_BUILD_TYPE}")
-    elseif(CMAKE_BUILD_TYPE)
-        set(BUILD_TYPE "${CMAKE_BUILD_TYPE}")
-    else()
-        set(BUILD_TYPE "RelWithDebInfo")
-        message(STATUS "No BUILD_TYPE specified, defaulting to RelWithDebInfo")
-    endif()
-    
     # Verify packages root exists
     if(NOT EXISTS "${PACKAGES_ROOT}")
         message(FATAL_ERROR "Packages root folder does not exist: ${PACKAGES_ROOT}")
@@ -78,7 +65,6 @@ function(add_engine_packages_to_prefix_path)
     message(STATUS "Adding ArieoEngine packages to CMAKE_PREFIX_PATH")
     message(STATUS "  Packages Root: ${PACKAGES_ROOT}")
     message(STATUS "  Platform: ${HOST_PRESET}")
-    message(STATUS "  Build Type: ${BUILD_TYPE}")
     
     # Collect all package directories
     set(PACKAGE_PATHS "")
@@ -91,25 +77,17 @@ function(add_engine_packages_to_prefix_path)
             file(GLOB PACKAGE_FOLDERS "${CATEGORY_FOLDER}/*")
             foreach(PACKAGE_FOLDER ${PACKAGE_FOLDERS})
                 if(IS_DIRECTORY "${PACKAGE_FOLDER}")
-                    # Check if platform-specific install exists (new single-config layout)
+                    get_filename_component(PACKAGE_NAME "${PACKAGE_FOLDER}" NAME)
+                    
+                    # Try platform-specific multi-config layout
                     set(PLATFORM_INSTALL_PATH "${PACKAGE_FOLDER}/${HOST_PRESET}")
                     if(EXISTS "${PLATFORM_INSTALL_PATH}/cmake")
                         list(APPEND PACKAGE_PATHS "${PLATFORM_INSTALL_PATH}")
-                        get_filename_component(PACKAGE_NAME "${PACKAGE_FOLDER}" NAME)
-                        message(STATUS "  Added: ${PACKAGE_NAME} (${HOST_PRESET}, multi-config)")
-                    else()
-                        # Fallback: Try old layout with BUILD_TYPE subdirectory for backward compatibility
-                        set(PLATFORM_INSTALL_PATH_OLD "${PACKAGE_FOLDER}/${HOST_PRESET}/${BUILD_TYPE}")
-                        if(EXISTS "${PLATFORM_INSTALL_PATH_OLD}")
-                            list(APPEND PACKAGE_PATHS "${PLATFORM_INSTALL_PATH_OLD}")
-                            get_filename_component(PACKAGE_NAME "${PACKAGE_FOLDER}" NAME)
-                            message(STATUS "  Added: ${PACKAGE_NAME} (${HOST_PRESET}/${BUILD_TYPE}, legacy)")
-                        elseif(EXISTS "${PACKAGE_FOLDER}/cmake")
-                            # Try without platform subdirectory (for platform-agnostic packages)
-                            list(APPEND PACKAGE_PATHS "${PACKAGE_FOLDER}")
-                            get_filename_component(PACKAGE_NAME "${PACKAGE_FOLDER}" NAME)
-                            message(STATUS "  Added: ${PACKAGE_NAME} (platform-agnostic)")
-                        endif()
+                        message(STATUS "  Added: ${PACKAGE_NAME} (${HOST_PRESET})")
+                    elseif(EXISTS "${PACKAGE_FOLDER}/cmake")
+                        # Try platform-agnostic packages (e.g., header-only)
+                        list(APPEND PACKAGE_PATHS "${PACKAGE_FOLDER}")
+                        message(STATUS "  Added: ${PACKAGE_NAME} (platform-agnostic)")
                     endif()
                 endif()
             endforeach()

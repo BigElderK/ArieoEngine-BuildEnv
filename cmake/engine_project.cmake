@@ -77,9 +77,13 @@ function(arieo_engine_project target_project)
     # make find_package use config first
     set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 
-    # Map Debug/RelWithDebInfo to use Release version for all third_parties packages
-    set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
-    set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG RELEASE)
+    # Map configurations with fallback chains for third-party packages (Conan)
+    # This allows graceful degradation when exact config isn't available
+    # Format: Try first config, if not found try second, etc.
+    set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG "Debug;RelWithDebInfo;Release")
+    set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO "RelWithDebInfo;Release;Debug")
+    set(CMAKE_MAP_IMPORTED_CONFIG_RELEASE "Release;RelWithDebInfo;Debug")
+    set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL "MinSizeRel;Release;RelWithDebInfo")
 
     # Force set msvc crt as MD
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
