@@ -6,10 +6,12 @@ annotation text from METADATA() macros at the locations indicated by AnnotateAtt
 """
 
 import json
+import os
 import sys
 import subprocess
 import re
 import hashlib
+import argparse
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 
@@ -480,9 +482,10 @@ def add_interface_checksums_recursive(node: Any) -> None:
 
 def run_clang_ast_dump(
     clang_executable: str,
-    header_file: str,
+    source_file: str,
     include_dirs: List[str],
     output_file: str,
+    include_files: List[str] = None,
     std: str = "c++20",
     ast_filter: Optional[str] = None
 ) -> bool:
@@ -491,8 +494,9 @@ def run_clang_ast_dump(
     
     Args:
         clang_executable: Path to clang++ executable
-        header_file: Path to the header file to parse
+        source_file: Path to the header file to parse
         include_dirs: List of include directories
+        include_files: List of files to include before processing source
         output_file: Path to output JSON file
         std: C++ standard version (default: c++20)
         ast_filter: Optional AST filter pattern (e.g., "Arieo::Interface")
@@ -500,30 +504,52 @@ def run_clang_ast_dump(
     Returns:
         True if successful, False otherwise
     """
+    # Check if clang-cl is being used - we don't support it
+    if "clang-cl" in os.path.basename(clang_executable).lower():
+        print(f"ERROR: clang-cl detected ({clang_executable}), but only regular clang/clang++ is supported.", file=sys.stderr)
+        print("Please set CLANG_FOR_CODEGEN to a regular clang executable path.", file=sys.stderr)
+        return False
+    
+    # Default include_files to empty list if not provided
+    if include_files is None:
+        include_files = []
+    
+    # Regular clang/clang++ uses GCC-style command line options
     cmd = [
         clang_executable,
         "-x", "c++-header",
-        "-w",
+        "-std=" + std,  # Enable C++20: -std=c++20
+        "-w",  # Disable warnings
         "-Wno-error",
         "-fsyntax-only",
         "-Xclang", "-ast-dump=json",
         "-Xclang", "-detailed-preprocessing-record",
-        f"-std={std}",
     ]
     
     # Add AST filter if specified
     if ast_filter:
         cmd.extend(["-Xclang", f"-ast-dump-filter={ast_filter}"])
     
-    # Add include directories
+    # Debug: Print the number of include directories
+    print(f"Number of include directories: {len(include_dirs)}")
+    print(f"Compiler type: clang/clang++ (GCC-compatible)")
+    
+    # Add include directories (GCC style: -I path)
     for inc_dir in include_dirs:
         cmd.extend(["-I", inc_dir])
+        print(f"  Include: {inc_dir}")
     
-    # Add header file
-    cmd.append(header_file)
+    # Add include files (files to include before processing source)
+    for inc_file in include_files:
+        cmd.extend(["-include", inc_file])
+        print(f"  Pre-include: {inc_file}")
+    
+    # Add source file
+    cmd.append(source_file)
     
     try:
-        print(f"Running: {' '.join(cmd)}")
+        print(f"Running clang with {len(include_dirs)} include paths...")
+        print(f"Command: {clang_executable} -x c++-header -std={std} [+{len(include_dirs)} -I flags] {source_file}")
         result = subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
@@ -1095,30 +1121,45 @@ def main():
     Main entry point for the script.
     
     Usage:
-        python generate_cxx_ast.py <clang_executable> <header_file> <output_file> <root_namespace> <package_name> [include_dirs...]
+        python generate_cxx_ast.py --clang-executable=<clang_executable> --source-file=<source_file> --output-file=<output_file> --root-namespace=<root_namespace> --package-name=<package_name> [--include-file=<include_file>] [--include-dir=<include_dir>]
     
     Example:
-        python generate_cxx_ast.py clang++ sample.h sample.ast.json "Arieo::Interface::Sample" "arieo:sample" /usr/include /usr/local/include
+        python generate_cxx_ast.py --clang-executable=clang++ --source-file=sample.h --output-file=sample.ast.json --root-namespace="Arieo::Interface::Sample" --package-name="arieo:sample" --include-file=file1.h --include-file=file2.h --include-dir=/usr/include --include-dir=/usr/local/include
     """
-    if len(sys.argv) < 6:
-        print("Usage: generate_cxx_ast.py <clang_executable> <header_file> <output_file> <root_namespace> <package_name> [include_dirs...]", file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description='Generate C++ AST JSON using clang and post-process to extract annotation strings.',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     
-    clang_executable = sys.argv[1]
-    header_file = sys.argv[2]
-    output_file = sys.argv[3]
-    root_namespace = sys.argv[4]
-    package_name = sys.argv[5]
-    include_dirs = sys.argv[6:] if len(sys.argv) > 6 else []
+    # Required arguments
+    parser.add_argument('--clang-executable', required=True,
+                        help='Path to clang/clang++ executable')
+    parser.add_argument('--source-file', required=True,
+                        help='Path to the C++ header file to parse')
+    parser.add_argument('--output-file', required=True,
+                        help='Path to output AST JSON file')
+    parser.add_argument('--root-namespace', required=True,
+                        help='Root namespace to filter AST (e.g., "Arieo::Interface::Sample")')
+    parser.add_argument('--package-name', required=True,
+                        help='Package name for the interface (e.g., "arieo:sample")')
+    
+    # Optional repeatable arguments
+    parser.add_argument('--include-file', action='append', dest='include_files', default=[],
+                        help='File to pre-include with -include flag (can be specified multiple times)')
+    parser.add_argument('--include-dir', action='append', dest='include_dirs', default=[],
+                        help='Include directory to add with -I flag (can be specified multiple times)')
+    
+    args = parser.parse_args()
     
     # Step 1: Run clang to generate AST JSON
-    print(f"Generating AST JSON from {header_file}...")
+    print(f"Generating AST JSON from {args.source_file}...")
     success = run_clang_ast_dump(
-        clang_executable=clang_executable,
-        header_file=header_file,
-        include_dirs=include_dirs,
-        output_file=output_file,
-        ast_filter=root_namespace
+        clang_executable=args.clang_executable,
+        source_file=args.source_file,
+        include_dirs=args.include_dirs,
+        output_file=args.output_file,
+        include_files=args.include_files,
+        ast_filter=args.root_namespace
     )
     
     # Always continue to post-processing, even if clang had issues
@@ -1126,10 +1167,10 @@ def main():
     # Step 2: Post-process to add annotation strings
     print(f"Post-processing AST JSON to extract annotations...")
     success = post_process_ast_json(
-        ast_json_file=output_file,
-        source_file=header_file,
-        root_namespace=root_namespace,
-        package_name=package_name
+        ast_json_file=args.output_file,
+        source_file=args.source_file,
+        root_namespace=args.root_namespace,
+        package_name=args.package_name
     )
     
     # Ignore post-processing errors as well

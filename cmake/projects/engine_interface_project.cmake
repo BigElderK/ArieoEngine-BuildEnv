@@ -16,12 +16,11 @@ function(arieo_interface_project target_project)
 
     set(multiValueArgs 
         PUBLIC_INCLUDE_FOLDERS
-        SOURCES
         PACKAGES
+        PRIVATE_LIBS
         PRIVATE_INCLUDE_FOLDERS
         PRIVATE_LIB_FOLDERS
         INTERFACES
-        PRIVATE_LIBS
         EXTERNAL_LIBS
     )
 
@@ -40,6 +39,7 @@ function(arieo_interface_project target_project)
     endif()
 
     foreach(ARGUMENT_PACKAGE IN LISTS ARGUMENT_PACKAGES)
+        Message(WARNING "Finding package ${ARGUMENT_PACKAGE} for ${target_project}")
         find_package(${ARGUMENT_PACKAGE} REQUIRED)
     endforeach()
 
@@ -84,65 +84,129 @@ function(arieo_interface_project target_project)
     list(REMOVE_DUPLICATES interface_headers)
 
     # Build extra include folders for code generation
-    set(extra_include_folders)
+    set(extra_include_folder_list)
     
     # Add project's own public include folders
     if(DEFINED ARGUMENT_PUBLIC_INCLUDE_FOLDERS)
-        list(APPEND extra_include_folders ${ARGUMENT_PUBLIC_INCLUDE_FOLDERS})
+        list(APPEND extra_include_folder_list ${ARGUMENT_PUBLIC_INCLUDE_FOLDERS})
     endif()
 
     # Extract and add include directories from INTERFACES targets
     # This is needed for code generation (clang) to find headers from dependent interfaces
+    set(referenced_lib_targetlist "")
     if(DEFINED ARGUMENT_INTERFACES)
-        foreach(interface_target ${ARGUMENT_INTERFACES})
-            # Check if target exists
-            if(TARGET ${interface_target})
-                # Get include directories from the interface target
-                get_target_property(interface_includes ${interface_target} INTERFACE_INCLUDE_DIRECTORIES)
-                if(interface_includes)
-                    foreach(inc_dir ${interface_includes})
-                        # Handle generator expressions - extract BUILD_INTERFACE paths
-                        string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" cleaned_dir "${inc_dir}")
-                        string(REGEX REPLACE "\\$<INSTALL_INTERFACE:[^>]+>" "" cleaned_dir "${cleaned_dir}")
-                        if(cleaned_dir AND NOT cleaned_dir STREQUAL "")
-                            list(APPEND extra_include_folders ${cleaned_dir})
-                        endif()
-                    endforeach()
-                endif()
-            endif()
-        endforeach()
+        list(APPEND referenced_lib_targetlist ${ARGUMENT_INTERFACES})
     endif()
 
-    # Extract and add include directories from PRIVATE_LIBS targets
-    # This is needed for code generation (clang) to find headers from dependent interfaces
-    if(DEFINED ARGUMENT_PRIVATE_LIBS)
-        foreach(private_lib ${ARGUMENT_PRIVATE_LIBS})
-            # Check if target exists
-            if(TARGET ${private_lib})
-                # Get include directories from the target
-                get_target_property(lib_includes ${private_lib} INTERFACE_INCLUDE_DIRECTORIES)
-                if(lib_includes AND NOT lib_includes STREQUAL "lib_includes-NOTFOUND")
-                    foreach(inc_dir ${lib_includes})
-                        # Handle generator expressions - extract BUILD_INTERFACE paths
-                        string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" cleaned_dir "${inc_dir}")
-                        string(REGEX REPLACE "\\$<INSTALL_INTERFACE:[^>]+>" "" cleaned_dir "${cleaned_dir}")
-                        if(cleaned_dir AND NOT cleaned_dir STREQUAL "")
-                            list(APPEND extra_include_folders ${cleaned_dir})
-                        endif()
-                    endforeach()
-                endif()
-            endif()
-        endforeach()
+    if(DEFINED ARGUMENT_PUBLIC_LIBS)
+        list(APPEND referenced_lib_targetlist ${ARGUMENT_PUBLIC_LIBS})
     endif()
+    
+    if(DEFINED ARGUMENT_PRIVATE_LIBS)
+        list(APPEND referenced_lib_targetlist ${ARGUMENT_PRIVATE_LIBS})
+    endif()
+
+    foreach(referenced_lib_target ${referenced_lib_targetlist})
+        # Check if target exists
+        if(TARGET ${referenced_lib_target})
+            # Get include directories from the interface target
+            get_target_property(interface_includes ${referenced_lib_target} INTERFACE_INCLUDE_DIRECTORIES)
+
+            if(interface_includes)
+                foreach(inc_dir ${interface_includes})
+                    # Handle generator expressions - extract BUILD_INTERFACE paths
+                    string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" cleaned_dir "${inc_dir}")
+                    string(REGEX REPLACE "\\$<INSTALL_INTERFACE:[^>]+>" "" cleaned_dir "${cleaned_dir}")
+                    if(cleaned_dir AND NOT cleaned_dir STREQUAL "")
+                        list(APPEND extra_include_folder_list ${cleaned_dir})
+                    endif()
+                endforeach()
+            endif()
+            
+            # Also get transitive dependencies (like fmt::fmt from arieo_core)
+            # INTERFACE_INCLUDE_DIRECTORIES doesn't automatically include transitive includes
+            get_target_property(transitive_libs ${referenced_lib_target} INTERFACE_LINK_LIBRARIES)
+            
+            if(transitive_libs AND NOT transitive_libs STREQUAL "transitive_libs-NOTFOUND")
+                foreach(trans_lib ${transitive_libs})
+                    if(TARGET ${trans_lib})
+                        get_target_property(trans_includes ${trans_lib} INTERFACE_INCLUDE_DIRECTORIES)
+                        
+                        if(trans_includes AND NOT trans_includes STREQUAL "trans_includes-NOTFOUND")
+                            foreach(inc_dir ${trans_includes})
+                                # Clean generator expressions (including nested ones like $<$<CONFIG:RELEASE>:path>)
+                                set(cleaned_dir "${inc_dir}")
+                                
+                                # Handle nested CONFIG generator expressions: $<$<CONFIG:RELEASE>:path> -> path
+                                string(REGEX REPLACE "\\$<\\$<CONFIG:[^>]+>:([^>]+)>" "\\1" cleaned_dir "${cleaned_dir}")
+                                
+                                # Handle BUILD_INTERFACE: $<BUILD_INTERFACE:path> -> path
+                                string(REGEX REPLACE "\\$<BUILD_INTERFACE:([^>]+)>" "\\1" cleaned_dir "${cleaned_dir}")
+                                
+                                # Remove INSTALL_INTERFACE completely
+                                string(REGEX REPLACE "\\$<INSTALL_INTERFACE:[^>]+>" "" cleaned_dir "${cleaned_dir}")
+                                
+                                # Remove $<0:...> and similar numeric conditions
+                                string(REGEX REPLACE "\\$<[0-9]+:([^>]+)>" "" cleaned_dir "${cleaned_dir}")
+                                
+                                # Apply multiple passes to handle any remaining generator expressions
+                                foreach(pass RANGE 3)
+                                    string(REGEX REPLACE "\\$<[^<>]+>" "" cleaned_dir "${cleaned_dir}")
+                                endforeach()
+                                
+                                # Clean up trailing artifacts
+                                string(REGEX REPLACE ">+$" "" cleaned_dir "${cleaned_dir}")
+                                string(STRIP "${cleaned_dir}" cleaned_dir)
+                                
+                                if(cleaned_dir AND EXISTS "${cleaned_dir}")
+                                    list(APPEND extra_include_folder_list "${cleaned_dir}")
+                                endif()
+                            endforeach()
+                        endif()
+                    endif()
+                endforeach()
+            endif()
+        endif()
+    endforeach()
+
+    # Get all include directories from the packages
+    foreach(package ${ARGUMENT_PACKAGES})
+        # Assume package provides a CMake variable with the same name as the package, suffixed with "_INCLUDE_DIRS"
+        set(package_include_var "${package}_INCLUDE_DIRS")
+        if(DEFINED ${package_include_var})
+            list(APPEND extra_include_folder_list ${${package_include_var}})
+        endif()
+    endforeach()
 
     # print extra include folders for debugging
-    message(STATUS "Extra include folders for ${target_project}: ${extra_include_folders}")
+    message(STATUS "Extra include folders for ${target_project}: ${extra_include_folder_list}")
+
+    # Get C++ standard library include directories (implicit compiler search paths)
+    if(DEFINED CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
+        list(APPEND extra_include_folder_list ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
+    endif()
+
+    # Also pick up any directory-level include directories
+    get_property(standard_includes DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+    if(standard_includes)
+        list(APPEND extra_include_folder_list ${standard_includes})
+    endif()
+
+    # Manually add extra include folders
+    #include "base/prerequisites.h"
+    list(APPEND extra_include_file_list $ENV{ARIEO_CORE_PACKAGE_INSTALL_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}/include/base/prerequisites.h)
+
+    # Remove duplicates
+    list(REMOVE_DUPLICATES extra_include_folder_list)
+    list(REMOVE_DUPLICATES extra_include_file_list)
+    # message(FATAL_ERROR "Final include folders for ${target_project}: ${extra_include_file_list}")
 
     # Call the interface code generation function
     arieo_generate_interface_code(
         ${target_project}
         INTERFACE_HEADERS ${interface_headers}
-        EXTRA_INCLUDE_FOLDERS ${extra_include_folders}
+        EXTRA_INCLUDE_FILES ${extra_include_file_list}
+        EXTRA_INCLUDE_FOLDERS ${extra_include_folder_list}
 
         SCRIPT_PACKAGE_NAME "${ARGUMENT_SCRIPT_PACKAGE_NAME}"
         ROOT_NAMESPACE "${ARGUMENT_ROOT_NAMESPACE}"

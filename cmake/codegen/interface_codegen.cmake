@@ -14,6 +14,7 @@ function(arieo_generate_interface_code target_project)
 
     set(multiValueArgs
         EXTRA_INCLUDE_FOLDERS
+        EXTRA_INCLUDE_FILES
         INTERFACE_HEADERS
     )
 
@@ -49,6 +50,12 @@ function(arieo_generate_interface_code target_project)
         list(APPEND extra_include_dirs "${inc_dir}")
     endforeach()
     
+    # Build include files list (files to pre-include with -include)
+    set(extra_include_files_list)
+    foreach(inc_file ${ARGUMENT_EXTRA_INCLUDE_FILES})
+        list(APPEND extra_include_files_list "${inc_file}")
+    endforeach()
+    
     # Add all other interface include directories to help resolve cross-interface dependencies
     file(GLOB interface_dirs "${CMAKE_CURRENT_LIST_DIR}/../*/public/include")
     foreach(interface_dir ${interface_dirs})
@@ -57,11 +64,16 @@ function(arieo_generate_interface_code target_project)
         endif()
     endforeach()
 
-    # Use CMAKE_CXX_COMPILER if it's clang, otherwise search for clang++
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set(CLANG_EXECUTABLE ${CMAKE_CXX_COMPILER})
+    # Use CMAKE_CXX_COMPILER if it's clang, otherwise check CLANG_FOR_CODEGEN env var or search
+    if(DEFINED ENV{CLANG_FOR_CODEGEN})
+        # Expand environment variables and CMake variables in the path template
+        set(clang_path_template "$ENV{CLANG_FOR_CODEGEN}")
+        string(CONFIGURE "${clang_path_template}" CLANG_EXECUTABLE)
+        # Normalize path separators
+        file(TO_CMAKE_PATH "${CLANG_EXECUTABLE}" CLANG_EXECUTABLE)
+        message(STATUS "Using CLANG_FOR_CODEGEN: ${CLANG_EXECUTABLE}")
     else()
-        find_program(CLANG_EXECUTABLE NAMES clang++ clang)
+        message(FATAL_ERROR "CLANG_FOR_CODEGEN environment variable not set. Please set it to the path of the clang executable to use for interface AST generation.")
     endif()
     
     if(NOT DEFINED CLANG_EXECUTABLE)
@@ -72,9 +84,6 @@ function(arieo_generate_interface_code target_project)
     if(NOT DEFINED ARGUMENT_AST_GENERATE_FOLDER)
         message(FATAL_ERROR "AST_GENERATE_FOLDER must be specified for interface project ${target_project}")
     endif()
-    
-    # Create AST output directory
-    file(MAKE_DIRECTORY ${ARGUMENT_AST_GENERATE_FOLDER})
     
     # Collect output JSON files and create custom commands
     set(output_generated_files)
@@ -96,15 +105,10 @@ function(arieo_generate_interface_code target_project)
         endif()
         list(APPEND output_generated_files ${output_json})
         
-        # Prepare include arguments for Python script (space-separated list)
-        set(python_includes)
-        foreach(inc_dir ${extra_include_dirs})
-            list(APPEND python_includes "${inc_dir}")
-        endforeach()
-        
+
         # Add custom command to generate AST JSON using Python script
         # The script runs clang and post-processes to extract annotation strings
-        set(PYTHON_SCRIPT "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate_cxx_ast.py")
+        set(GENERATE_CXX_AST_PYTHON_SCRIPT "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate_cxx_ast.py")
         set(GENERATE_INTERFACE_MUSTACHE_TEMPLATE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/xxx.interface.json.mustache")
         set(GENERATE_INTERFACE_INFO_H_MUSTACHE_TEMPLATE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/xxx.interface_info.h.mustache")
         set(GENERATE_INTERFACE_WIT_MUSTACHE_TEMPLATE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/xxx.interface.wit.mustache")
@@ -121,16 +125,34 @@ function(arieo_generate_interface_code target_project)
         if(NOT DEFINED ARGUMENT_ROOT_NAMESPACE)
             message(FATAL_ERROR "ROOT_NAMESPACE must be specified for interface project ${target_project}")
         endif()
-        
-        # message(FATAL_ERROR "python \"${PYTHON_SCRIPT}\" \"${CLANG_EXECUTABLE}\" \"${header_file}\" \"${output_json}\" \"${ARGUMENT_ROOT_NAMESPACE}\" \"${ARGUMENT_SCRIPT_PACKAGE_NAME}\" ${python_includes}")
 
+        # Build command-line arguments for Python script
+        set(python_cmd_args
+            "--clang-executable=${CLANG_EXECUTABLE}"
+            "--source-file=${header_file}"
+            "--output-file=${output_json}"
+            "--root-namespace=${ARGUMENT_ROOT_NAMESPACE}"
+            "--package-name=${ARGUMENT_SCRIPT_PACKAGE_NAME}"
+        )
+        
+        # Add include files arguments
+        foreach(inc_file ${extra_include_files_list})
+            list(APPEND python_cmd_args "--include-file=${inc_file}")
+        endforeach()
+        
+        # Add include directory arguments
+        foreach(inc_dir ${extra_include_dirs})
+            list(APPEND python_cmd_args "--include-dir=${inc_dir}")
+        endforeach()
+
+        # Generate AST JSON file using Python script with clang
         add_custom_command(
             OUTPUT ${output_json}
             COMMAND ${CMAKE_COMMAND} -E echo "Generating AST for ${header_basename}.h..."
-            COMMAND python "${PYTHON_SCRIPT}" "${CLANG_EXECUTABLE}" "${header_file}" "${output_json}" "${ARGUMENT_ROOT_NAMESPACE}" "${ARGUMENT_SCRIPT_PACKAGE_NAME}" ${python_includes}
+            COMMAND python "${GENERATE_CXX_AST_PYTHON_SCRIPT}" ${python_cmd_args}
             COMMAND ${CMAKE_COMMAND} -E echo "Successfully generated ${output_json}"
             COMMAND_ERROR_IS_FATAL ANY
-            DEPENDS ${header_file} "${PYTHON_SCRIPT}"
+            DEPENDS ${header_file} "${GENERATE_CXX_AST_PYTHON_SCRIPT}"
             COMMENT "Generating ${header_basename}.ast.json with annotations from ${header_basename}.h"
         )
         

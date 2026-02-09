@@ -20,9 +20,6 @@ compiler.runtime_type=Release
 [options]
 *:shared=False
 
-[buildenv]
-CONAN_BUILD_ENV_CHECK=true
-
 [conf]
 tools.build:jobs=8
 tools.cmake.cmaketoolchain:generator=Ninja
@@ -51,3 +48,6 @@ tools.microsoft:winsdk_version=10.0.26100.0
 #tools.build:cxxflags=+["-v"]
 
 
+[buildenv]
+CONAN_BUILD_ENV_CHECK=true
+CLANG_FOR_CODEGEN=$ENV{DEVCRAFT_WORKSPACE}/llvm/llvm-21/$ENV{DEVCRAFT_HOST_TRIPLE}/bin/clang++${CMAKE_HOST_EXECUTABLE_SUFFIX}

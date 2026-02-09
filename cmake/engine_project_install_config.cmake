@@ -13,6 +13,15 @@ function(arieo_engine_project_install_configure target_project)
     set(oneValueArgs 
         ALIAS
         PROJECT_TYPE
+        MODULE_CONFIG_FILE
+        AST_GENERATE_FOLDER
+        NATIVE_CODE_GENERATE_FOLDER
+        WASM_WIT_GENERATE_FOLDER
+        WASM_CXX_SCRIPT_GENERATE_FOLDER
+        WASM_CSHARP_SCRIPT_GENERATE_FOLDER
+        WASM_RUST_SCRIPT_GENERATE_FOLDER
+        SCRIPT_PACKAGE_NAME
+        ROOT_NAMESPACE
     )
 
     set(multiValueArgs
@@ -20,17 +29,13 @@ function(arieo_engine_project_install_configure target_project)
         PUBLIC_INCLUDE_FOLDERS
         INTERFACES
         PUBLIC_LIBS
+        PRIVATE_LIBS
         EXTERNAL_LIBS
+        PRIVATE_INCLUDE_FOLDERS
+        PRIVATE_LIB_FOLDERS
+        SOURCES
     )
 
-    cmake_parse_arguments(
-        ARGUMENT
-        ""
-        "${oneValueArgs}"
-        "${multiValueArgs}"
-        ${ARGN}
-    )
-    
     cmake_parse_arguments(
         ARG
         ""
