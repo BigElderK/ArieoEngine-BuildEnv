@@ -39,7 +39,7 @@ function(arieo_interface_project target_project)
     endif()
 
     foreach(ARGUMENT_PACKAGE IN LISTS ARGUMENT_PACKAGES)
-        Message(WARNING "Finding package ${ARGUMENT_PACKAGE} for ${target_project}")
+        Message(STATUS "Finding package ${ARGUMENT_PACKAGE} for ${target_project}")
         find_package(${ARGUMENT_PACKAGE} REQUIRED)
     endforeach()
 
