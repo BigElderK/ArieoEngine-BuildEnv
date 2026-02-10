@@ -36,13 +36,14 @@ function(arieo_engine_project target_project)
     string(TOLOWER "${ARGUMENT_PROJECT_TYPE}" ARGUMENT_PROJECT_TYPE)
 
     # Check Environment CONAN_BUILD_ENV_CHECK is true
-    if(NOT DEFINED ENV{CONAN_BUILD_ENV_CHECK} OR NOT "$ENV{CONAN_BUILD_ENV_CHECK}" STREQUAL "true")
-        message(FATAL_ERROR "Conan build environment not set up. Please make sure to run CMake with the appropriate Conan build environment setup.")
-        exit(1)
-    endif()
+    # if(NOT DEFINED ENV{CONAN_BUILD_ENV_CHECK})
+    #     message(FATAL_ERROR "Conan build environment not set up. Please make sure to run CMake with the appropriate Conan build environment setup.")
+    #     exit(1)
+    # endif()
 
-    # include toolchain file first and then we can override somesettings after
-    include(${CMAKE_TOOLCHAIN_FILE})
+    # Toolchain file is already included automatically by CMakePresets.json
+    # No need to manually include it here
+    # include(${CMAKE_TOOLCHAIN_FILE})
 
     if(NOT DEFINED CMAKE_MODULE_LINKER_FLAGS_INIT)
         set(CMAKE_MODULE_LINKER_FLAGS_INIT "${CMAKE_SHARED_LINKER_FLAGS_INIT}")
@@ -70,10 +71,10 @@ function(arieo_engine_project target_project)
     message(STATUS "Arieo MSVC CRT LIB: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
 
     # add all engine package install folder to prefix
-    add_engine_packages_to_prefix_path(
-        PACKAGES_ROOT $ENV{ARIEO_PACKAGE_ROOT_INSTALL_FOLDER}
-        HOST_PRESET $ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}
-    )
+    # add_engine_packages_to_prefix_path(
+    #     PACKAGES_ROOT $ENV{ARIEO_PACKAGE_ROOT_INSTALL_FOLDER}
+    #     HOST_PRESET $ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}
+    # )
 
     # Dispatch to specialized function based on project type
     if("${ARGUMENT_PROJECT_TYPE}" STREQUAL "base")

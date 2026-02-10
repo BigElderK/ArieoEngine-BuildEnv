@@ -1,4 +1,12 @@
 {
     "name": "Arieo-BuildEnv",
-    "description": "Build environment for Areio projects"
+    "description": "Build environment for Areio projects",
+    "build_commands": 
+    [
+        "${CMAKE_COMMAND} --build ."        
+    ],
+    "install_commands": 
+    [
+        "${CMAKE_COMMAND} --build . --target install"
+    ]
 }
