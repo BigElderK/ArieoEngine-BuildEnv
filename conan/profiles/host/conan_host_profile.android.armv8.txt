@@ -29,8 +29,8 @@ tools.cmake.cmakedeps:new=will_break_next
 tools.build:cxxflags=+["-DNO_WORDEXP"]
 tools.build:cflags=+["-DNO_WORDEXP"]
 
-tools.android:ndk_path=$ENV{DEVCRAFT_WORKSPACE}android/android_sdk/ndk/29.0.13599879
-tools.cmake.cmaketoolchain:extra_variables={"ANDROID_NDK_ROOT": "$ENV{DEVCRAFT_WORKSPACE}android/android_sdk/ndk/29.0.13599879", "ANDROID_PLATFORM": "android-35", "ANDROID_NATIVE_API_LEVEL": "35", "ANDROID_STL": "c++_shared"}
+tools.android:ndk_path=$ENV{DEVCRAFT_WORKSPACE}/android/android_sdk/ndk/29.0.13599879
+tools.cmake.cmaketoolchain:extra_variables={"ANDROID_NDK_ROOT": "$ENV{DEVCRAFT_WORKSPACE}/android/android_sdk/ndk/29.0.13599879", "ANDROID_PLATFORM": "android-35", "ANDROID_NATIVE_API_LEVEL": "35", "ANDROID_STL": "c++_shared"}
 
 tools.build:cxxflags=+["-DNO_WORDEXP -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security"]
 

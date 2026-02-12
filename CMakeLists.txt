@@ -50,6 +50,7 @@ add_custom_command(
     DEPENDS 
         ${conan_host_profile_file}
         ${CMAKE_CURRENT_LIST_DIR}/conan/conanfile.txt
+    COMMAND ${CMAKE_COMMAND} -E rm -f ${CONAN_STAMP_FILE}
     COMMAND ${CMAKE_COMMAND} -E echo "Running conan install for ${CMAKE_CONFIGURE_PRESET}"
     COMMAND conan
         install ${CMAKE_CURRENT_LIST_DIR}/conan/conanfile.txt
@@ -60,7 +61,6 @@ add_custom_command(
         --profile=${conan_host_profile_file}
     COMMAND ${CMAKE_COMMAND} -E touch ${CONAN_STAMP_FILE}
     COMMENT "Running conan install for preset: ${CMAKE_CONFIGURE_PRESET}"
-    COMMAND_ERROR_IS_FATAL ANY
     USES_TERMINAL
     VERBATIM
 )
