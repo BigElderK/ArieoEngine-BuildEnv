@@ -103,9 +103,9 @@ function(arieo_bootstrap_project target_project)
     set_target_properties(
         ${target_project}
         PROPERTIES 
-            RUNTIME_OUTPUT_DIRECTORY ${ARIEO_BOOTSTRAP_OUTPUT_DIRECTORY}
-            ARCHIVE_OUTPUT_DIRECTORY ${ARIEO_BOOTSTRAP_OUTPUT_DIRECTORY}
-            LIBRARY_OUTPUT_DIRECTORY ${ARIEO_BOOTSTRAP_OUTPUT_DIRECTORY}
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+            ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
     # Copy external libs to libs folder
@@ -126,9 +126,9 @@ function(arieo_bootstrap_project target_project)
         foreach(src_external_lib IN LISTS default_external_libs)
             # get filename with extension from path
             get_filename_component(src_lib_filename ${src_external_lib} NAME)
-            set(dest_external_lib "${ARIEO_LIBS_OUTPUT_DIRECTORY}/${src_lib_filename}")
+            set(dest_external_lib "${CMAKE_BINARY_DIR}/bin/libs/${src_lib_filename}")
 
-            message(STATUS "Copying external lib ${src_lib_filename} to ${ARIEO_LIBS_OUTPUT_DIRECTORY}/${src_lib_filename}")
+            message(STATUS "Copying external lib ${src_lib_filename} to ${CMAKE_BINARY_DIR}/bin/libs/${src_lib_filename}")
 
             add_custom_command(
                 TARGET ${target_project} POST_BUILD
