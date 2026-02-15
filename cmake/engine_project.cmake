@@ -16,8 +16,6 @@ include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_bootstrap_project.cmake)
 # Include installation configuration function
 include(${CMAKE_CURRENT_LIST_DIR}/engine_project_install_config.cmake)
 
-include(${CMAKE_CURRENT_LIST_DIR}/package/search_engine_project_packages.cmake)
-
 # Main dispatcher function
 function(arieo_engine_project target_project)
     set(oneValueArgs 
