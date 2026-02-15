@@ -5,7 +5,7 @@
   ],
   "configurePresets": [
     {
-      "name": "unified",
+      "name": "application.unified",
       "inherits": "base",
       "description": "Unified preset for cross-platform applications that don't require platform-specific configuration",
       "cacheVariables": {

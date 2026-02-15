@@ -31,9 +31,9 @@ function(arieo_application_project target_project)
     set_target_properties(
         ${target_project}
         PROPERTIES 
-            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/apps/${target_project}
-            ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/apps/${target_project}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/apps/${target_project}
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${target_project}
+            ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${target_project}
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${target_project}
     )
 
     cmake_parse_arguments(
@@ -64,12 +64,54 @@ function(arieo_application_project target_project)
     # Build .NET scripts
     arieo_build_dotnet_scripts(${target_project} "${ARGUMENT_SCRIPT_FOLDER}")
 
-    # Install application output directory
-    install(
-        DIRECTORY ${app_output_dir}/
-        DESTINATION apps/${target_project}
-        USE_SOURCE_PERMISSIONS
-        PATTERN "*.pdb" EXCLUDE
-    )
+    # Set app output directory
+    set(app_output_dir ${CMAKE_BINARY_DIR}/${target_project})
+
+    # Install application content (cooked shaders, images, models)
+    if(ARGUMENT_CONTENT_FOLDER AND EXISTS "${ARGUMENT_CONTENT_FOLDER}")
+        install(
+            DIRECTORY ${app_output_dir}/content/
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/content
+            OPTIONAL
+        )
+    endif()
+
+    # Install wasm files from build output, keeping folder structure
+    if(ARGUMENT_SCRIPT_FOLDER AND EXISTS "${ARGUMENT_SCRIPT_FOLDER}")
+        install(
+            DIRECTORY ${app_output_dir}/script/
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/script
+            OPTIONAL
+            FILES_MATCHING PATTERN "*.wasm"
+        )
+    endif()
+
+    if(ARGUMENT_MANIFEST_FILE AND EXISTS "${ARGUMENT_MANIFEST_FILE}")
+        install(
+            FILES ${ARGUMENT_MANIFEST_FILE}
+            DESTINATION ${CMAKE_INSTALL_PREFIX}
+        )
+    endif()
+
+    # Generate OBB export script
+    set(OBB_OUTPUT_FILE ${CMAKE_INSTALL_PREFIX}/../${target_project}.obb)
+    set(OBB_SCRIPT_FILE ${CMAKE_BINARY_DIR}/${target_project}_export_obb.cmake)
+    file(WRITE ${OBB_SCRIPT_FILE} "
+        message(STATUS \"Creating OBB file: ${OBB_OUTPUT_FILE}\")
+        file(REMOVE \"${OBB_OUTPUT_FILE}\")
+        execute_process(
+            COMMAND \${CMAKE_COMMAND} -E tar cfv \"${OBB_OUTPUT_FILE}\" --format=zip .
+            WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}\"
+            RESULT_VARIABLE ZIP_RESULT
+            ERROR_VARIABLE ZIP_ERROR
+        )
+        if(NOT ZIP_RESULT EQUAL 0)
+            message(WARNING \"Failed to create OBB file: \${ZIP_ERROR}\")
+        else()
+            file(SIZE \"${OBB_OUTPUT_FILE}\" OBB_SIZE)
+            message(STATUS \"OBB file created: ${OBB_OUTPUT_FILE} (\${OBB_SIZE} bytes)\")
+        endif()
+    ")
+    install(SCRIPT ${OBB_SCRIPT_FILE})
 
 endfunction()

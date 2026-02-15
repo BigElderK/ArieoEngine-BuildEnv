@@ -7,6 +7,29 @@ if(NOT DEFINED CMAKE_CONFIGURE_PRESET)
     message(FATAL_ERROR "Variable CMAKE_CONFIGURE_PRESET is not defined. install_config.cmake should be included first.")
 endif()
 
+# Skip Arieo-BuildEnv for unified preset - it's handled by the unified build system
+if (${CMAKE_CONFIGURE_PRESET} STREQUAL "application.unified")
+    message(STATUS "Skipping Arieo-BuildEnv for unified preset - only installing cmake helper files")
+    
+    # Still install the cmake helper files that applications need
+    install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/cmake/
+        DESTINATION cmake
+    )
+    
+    # Generate and install CMakePresets.json from template
+    configure_file(
+        ${CMAKE_CURRENT_LIST_DIR}/CMakePresets.json.in
+        ${CMAKE_BINARY_DIR}/CMakePresets.json
+        @ONLY
+    )
+    install(
+        FILES ${CMAKE_BINARY_DIR}/CMakePresets.json
+        DESTINATION cmake
+    )
+    return()
+endif()
+
+# Normal preset handling
 if (${CMAKE_CONFIGURE_PRESET} STREQUAL "android.armv8")
     set(conan_host_profile_file ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.android.armv8.txt)
 endif()

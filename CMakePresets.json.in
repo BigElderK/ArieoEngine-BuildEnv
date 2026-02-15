@@ -7,6 +7,7 @@
     },
     "include": [
         "@CMAKE_CURRENT_LIST_DIR@/cmake/presets/base.json",
+        "@CMAKE_CURRENT_LIST_DIR@/cmake/presets/application.unified.json",
         "@CMAKE_CURRENT_LIST_DIR@/cmake/presets/windows.x86_64.json",
         "@CMAKE_CURRENT_LIST_DIR@/cmake/presets/macos.arm64.json",
         "@CMAKE_CURRENT_LIST_DIR@/cmake/presets/ubuntu.x86_64.json",
