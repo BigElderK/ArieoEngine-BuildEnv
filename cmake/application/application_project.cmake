@@ -88,26 +88,32 @@ function(arieo_application_project target_project)
             )
         endif()
 
-        # Generate OBB export script
-        set(OBB_OUTPUT_FILE ${CMAKE_INSTALL_PREFIX}/../${target_project}.obb)
-        set(OBB_SCRIPT_FILE ${CMAKE_BINARY_DIR}/${target_project}_export_obb.cmake)
-        file(WRITE ${OBB_SCRIPT_FILE} "
-            message(STATUS \"Creating OBB file: ${OBB_OUTPUT_FILE}\")
-            file(REMOVE \"${OBB_OUTPUT_FILE}\")
-            execute_process(
-                COMMAND \${CMAKE_COMMAND} -E tar cfv \"${OBB_OUTPUT_FILE}\" --format=zip .
-                WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}\"
-                RESULT_VARIABLE ZIP_RESULT
-                ERROR_VARIABLE ZIP_ERROR
-            )
-            if(NOT ZIP_RESULT EQUAL 0)
-                message(WARNING \"Failed to create OBB file: \${ZIP_ERROR}\")
-            else()
-                file(SIZE \"${OBB_OUTPUT_FILE}\" OBB_SIZE)
-                message(STATUS \"OBB file created: ${OBB_OUTPUT_FILE} (\${OBB_SIZE} bytes)\")
+        # Generate OBB file during install (zip content and script folders only)
+        set(OBB_OUTPUT_FILE ${CMAKE_INSTALL_PREFIX}/${target_project}.obb)
+        install(CODE "
+            set(OBB_CONTENTS \"\")
+            if(EXISTS \"${CMAKE_INSTALL_PREFIX}/content\")
+                list(APPEND OBB_CONTENTS content)
+            endif()
+            if(EXISTS \"${CMAKE_INSTALL_PREFIX}/script\")
+                list(APPEND OBB_CONTENTS script)
+            endif()
+            if(OBB_CONTENTS)
+                message(STATUS \"Creating OBB file: ${OBB_OUTPUT_FILE}\")
+                file(REMOVE \"${OBB_OUTPUT_FILE}\")
+                execute_process(
+                    COMMAND \${CMAKE_COMMAND} -E tar cfv \"${OBB_OUTPUT_FILE}\" --format=zip \${OBB_CONTENTS}
+                    WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}\"
+                    RESULT_VARIABLE ZIP_RESULT
+                )
+                if(NOT ZIP_RESULT EQUAL 0)
+                    message(WARNING \"Failed to create OBB file\")
+                else()
+                    file(SIZE \"${OBB_OUTPUT_FILE}\" OBB_SIZE)
+                    message(STATUS \"OBB file created: ${OBB_OUTPUT_FILE} (\${OBB_SIZE} bytes)\")
+                endif()
             endif()
         ")
-        install(SCRIPT ${OBB_SCRIPT_FILE})
     else()
         # Install wasm files from build output, keeping folder structure
         if(ARGUMENT_SCRIPT_FOLDER AND EXISTS "${ARGUMENT_SCRIPT_FOLDER}")
