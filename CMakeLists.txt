@@ -7,28 +7,6 @@ if(NOT DEFINED CMAKE_CONFIGURE_PRESET)
     message(FATAL_ERROR "Variable CMAKE_CONFIGURE_PRESET is not defined. install_config.cmake should be included first.")
 endif()
 
-# Skip Arieo-BuildEnv for unified preset - it's handled by the unified build system
-if (${CMAKE_CONFIGURE_PRESET} STREQUAL "application.unified")
-    message(STATUS "Skipping Arieo-BuildEnv for unified preset - only installing cmake helper files")
-    
-    # Still install the cmake helper files that applications need
-    install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/cmake/
-        DESTINATION cmake
-    )
-    
-    # Generate and install CMakePresets.json from template
-    configure_file(
-        ${CMAKE_CURRENT_LIST_DIR}/CMakePresets.json.in
-        ${CMAKE_BINARY_DIR}/CMakePresets.json
-        @ONLY
-    )
-    install(
-        FILES ${CMAKE_BINARY_DIR}/CMakePresets.json
-        DESTINATION cmake
-    )
-    return()
-endif()
-
 # Normal preset handling
 if (${CMAKE_CONFIGURE_PRESET} STREQUAL "android.armv8")
     set(conan_host_profile_file ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.android.armv8.txt)
@@ -47,7 +25,7 @@ if (${CMAKE_CONFIGURE_PRESET} STREQUAL "windows.x86_64")
     if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
         set(conan_host_profile_file ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.windows.x86_64.txt)    
     else()
-        message(FATAL_ERROR "Preset windows.x86_64 is only supported on Windows host platform.")
+        message(WARNING "Preset windows.x86_64 is only supported on Windows host platform.")
     endif()
 endif()
 
@@ -58,35 +36,40 @@ if (${CMAKE_CONFIGURE_PRESET} STREQUAL "macos.arm64")
     if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
         set(conan_host_profile_file ${CMAKE_CURRENT_LIST_DIR}/conan/profiles/host/conan_host_profile.macos.arm64.txt)
     else()
-        message(FATAL_ERROR "Preset macos.arm64 is only supported on Darwin host platform.")
+        message(WARNING "Preset macos.arm64 is only supported on Darwin host platform.")
     endif()
 endif()
 
-# Use a stamp file to track conan installation completion (preset-specific)
-set(CONAN_STAMP_FILE ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET}/.conan_install_complete)
 
-# Ensure the conan directory exists
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET})
+if (DEFINED conan_host_profile_file)
+    # Use a stamp file to track conan installation completion (preset-specific)
+    set(CONAN_STAMP_FILE ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET}/.conan_install_complete)
 
-add_custom_command(
-    OUTPUT ${CONAN_STAMP_FILE}
-    DEPENDS 
-        ${conan_host_profile_file}
-        ${CMAKE_CURRENT_LIST_DIR}/conan/conanfile.txt
-    COMMAND ${CMAKE_COMMAND} -E rm -f ${CONAN_STAMP_FILE}
-    COMMAND ${CMAKE_COMMAND} -E echo "Running conan install for ${CMAKE_CONFIGURE_PRESET}"
-    COMMAND conan
-        install ${CMAKE_CURRENT_LIST_DIR}/conan/conanfile.txt
-        --update
-        --generator CMakeToolchain
-        --output-folder ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET}
-        --build=never
-        --profile=${conan_host_profile_file}
-    COMMAND ${CMAKE_COMMAND} -E touch ${CONAN_STAMP_FILE}
-    COMMENT "Running conan install for preset: ${CMAKE_CONFIGURE_PRESET}"
-    USES_TERMINAL
-    VERBATIM
-)
+    # Ensure the conan directory exists
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET})
+
+    add_custom_command(
+        OUTPUT ${CONAN_STAMP_FILE}
+        DEPENDS 
+            ${conan_host_profile_file}
+            ${CMAKE_CURRENT_LIST_DIR}/conan/conanfile.txt
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${CONAN_STAMP_FILE}
+        COMMAND ${CMAKE_COMMAND} -E echo "Running conan install for ${CMAKE_CONFIGURE_PRESET}"
+        COMMAND conan
+            install ${CMAKE_CURRENT_LIST_DIR}/conan/conanfile.txt
+            --update
+            --generator CMakeToolchain
+            --output-folder ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET}
+            --build=never
+            --profile=${conan_host_profile_file}
+        COMMAND ${CMAKE_COMMAND} -E touch ${CONAN_STAMP_FILE}
+        COMMENT "Running conan install for preset: ${CMAKE_CONFIGURE_PRESET}"
+        USES_TERMINAL
+        VERBATIM
+    )
+else()
+    message(VERBOSE "No valid Conan host profile found for preset ${CMAKE_CONFIGURE_PRESET}. Skip conal install")
+endif()
 
 # Generate wrapper files from templates
 configure_file(
@@ -107,21 +90,18 @@ add_custom_target(arieo_build_env ALL
 )
 
 ###########################################################################
-# Install conan generated files
+# Install conan generated files (only if conan profile is defined)
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET}/
-    DESTINATION conan/host/${CMAKE_CONFIGURE_PRESET}
-)
+if(DEFINED conan_host_profile_file)
+    install(DIRECTORY ${CMAKE_BINARY_DIR}/conan/host/${CMAKE_CONFIGURE_PRESET}/
+        DESTINATION conan/host/${CMAKE_CONFIGURE_PRESET}
+    )
 
-install(
-    FILES ${conan_host_profile_file}
-    DESTINATION conan/host/${CMAKE_CONFIGURE_PRESET}
-)
-
-install(
-    FILES ${CMAKE_BINARY_DIR}/CMakePresets.json
-    DESTINATION cmake
-)
+    install(
+        FILES ${conan_host_profile_file}
+        DESTINATION conan/host/${CMAKE_CONFIGURE_PRESET}
+    )
+endif()
 
 # Install generated wrapper files
 install(

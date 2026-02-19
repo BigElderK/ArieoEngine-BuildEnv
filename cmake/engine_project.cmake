@@ -1,17 +1,11 @@
 cmake_minimum_required(VERSION 3.31)
 
 # Include specialized project type cmake files
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_base_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_static_library_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_shared_library_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_headonly_library_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_interface_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_interface_linker_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_module_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_plugin_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_tool_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_test_project.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/engine_bootstrap_project.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/projects/project_basic_paramters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/projects/project_dependencies_parameters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/projects/project_sources_parameters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/projects/project_interface_parameters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/projects/project_interface_code_gen_parameters.cmake)
 
 # Include installation configuration function
 include(${CMAKE_CURRENT_LIST_DIR}/engine_project_install_config.cmake)
@@ -21,34 +15,36 @@ function(arieo_engine_project target_project)
     set(oneValueArgs 
         ALIAS
         PROJECT_TYPE
+
+    )
+
+    set(multiValueArgs 
+        DEPENDENCIES
+        SOURCES
+        INTERFACE_CODE_GENERATION
     )
 
     cmake_parse_arguments(
         ARGUMENT
         ""
         "${oneValueArgs}"
-        ""
+        "${multiValueArgs}"
         ${ARGN}
     )
-    
-    string(TOLOWER "${ARGUMENT_PROJECT_TYPE}" ARGUMENT_PROJECT_TYPE)
+
+    # log debug info about the project type
+    message(STATUS "Configuring project ${target_project} of type ${ARGUMENT_PROJECT_TYPE}")
+    message(STATUS "Configuring project ${target_project} with dependencies: ${ARGUMENT_DEPENDENCIES}")
+    message(STATUS "Configuring project ${target_project} with sources: ${ARGUMENT_SOURCES}")
+    message(STATUS "Configuring project ${target_project} with interface code gen: ${ARGUMENT_INTERFACE_CODE_GENERATION}")
 
     # Append extra prefix paths from dependencies without overriding preset values
     if(DEFINED ENV{ARIEO_CMAKE_EXTRA_PREFIX_PATH})
         list(APPEND CMAKE_PREFIX_PATH $ENV{ARIEO_CMAKE_EXTRA_PREFIX_PATH})
+        set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}")
     endif()
 
     message(STATUS "Building project ${target_project} with CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-
-    # Check Environment CONAN_BUILD_ENV_CHECK is true
-    # if(NOT DEFINED ENV{CONAN_BUILD_ENV_CHECK})
-    #     message(FATAL_ERROR "Conan build environment not set up. Please make sure to run CMake with the appropriate Conan build environment setup.")
-    #     exit(1)
-    # endif()
-
-    # Toolchain file is already included automatically by CMakePresets.json
-    # No need to manually include it here
-    # include(${CMAKE_TOOLCHAIN_FILE})
 
     # make all program compile with fpic
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -69,33 +65,17 @@ function(arieo_engine_project target_project)
 
     # Force set msvc crt as MD
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-    message(STATUS "Arieo MSVC CRT LIB: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
+    message(STATUS "Arieo MSVC CRT LIB: MultiThreadedDLL")
 
-    # Dispatch to specialized function based on project type
-    if("${ARGUMENT_PROJECT_TYPE}" STREQUAL "base")
-        arieo_base_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "static_library")
-        arieo_static_library_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "shared_library")
-        arieo_shared_library_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "headonly_library")
-        arieo_headonly_library_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "interface")
-        arieo_interface_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "interface_linker")
-        arieo_interface_linker_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "module")
-        arieo_module_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "plugin")
-        arieo_plugin_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "tool")
-        arieo_tool_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "test")
-        arieo_test_project(${target_project} ${ARGN})
-    elseif("${ARGUMENT_PROJECT_TYPE}" STREQUAL "bootstrap")
-        arieo_bootstrap_project(${target_project} ${ARGN})
-    else()
-        message(FATAL_ERROR "Unknown project type: ${ARGUMENT_PROJECT_TYPE}")
+    # Add definitions for interface libraries
+    project_basic_paramters(${target_project} ${ARGN})
+
+    # Call sources and dependencies parameter functions
+    project_dependencies_parameters(${target_project} ${ARGUMENT_DEPENDENCIES})
+    project_sources_parameters(${target_project} ${ARGUMENT_SOURCES})
+
+    if(DEFINED ARGUMENT_INTERFACE_CODE_GENERATION)
+        project_interface_code_gen_parameters(${target_project} ${ARGUMENT_INTERFACE_CODE_GENERATION})
     endif()
 
     arieo_engine_project_install_configure(

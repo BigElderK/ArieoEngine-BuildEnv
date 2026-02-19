@@ -70,10 +70,11 @@ function(arieo_engine_project_install_configure target_project)
     #       It does NOT copy any files - we need separate install(DIRECTORY) commands below
     # Libraries are installed to build-type subdirectories to support multi-config installs
     # IMPORTANT: Use package_name for EXPORT to group all targets under same export
+    # Note: Both LIBRARY (.so/.dylib) and RUNTIME (.dll) go to bin folder for unified runtime loading
     install(TARGETS ${target_project}
         EXPORT ${package_name}Targets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/$<CONFIG>
+        LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/$<CONFIG>
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/$<CONFIG>
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
