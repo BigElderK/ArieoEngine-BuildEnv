@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
-set(ARIEO_PACKAGE_CATEGORY "00_build" CACHE INTERNAL "Category for Arieo packages")
-set(ARIEO_PACKAGE_NAME "Arieo-BuildEnv" CACHE INTERNAL "Name for Arieo package")
-add_custom_target(
-    ${ARIEO_PACKAGE_NAME}
-    DEPENDS 
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/build_environment.cmake)
+
+ArieoPackage(
+    Arieo-BuildEnv
+    CATEGORY 00_build
+    COMPONENTS
         generate_toolchain_from_conan
         copy_cmake_presets
 )
