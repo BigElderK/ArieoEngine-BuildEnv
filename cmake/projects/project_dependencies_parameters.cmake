@@ -164,13 +164,12 @@ function(set_target_libraries target_project)
     )
 
     # Check if target is an INTERFACE library
-    get_target_property(target_type ${target_project} TYPE)
-    if(target_type STREQUAL "INTERFACE_LIBRARY")
-        set(is_interface_library TRUE)
-    else()
-        set(is_interface_library FALSE)
-    endif()
-
+    # get_target_property(target_type ${target_project} TYPE)
+    # if(target_type STREQUAL "INTERFACE_LIBRARY")
+    #     set(is_interface_library TRUE)
+    # else()
+    #     set(is_interface_library FALSE)
+    # endif()
     target_link_libraries(
         ${target_project}
         PUBLIC

@@ -68,13 +68,19 @@ function(project_interface_code_gen_parameters target_project)
     endif()
 
     # Extract include directories from linked libraries
-    get_target_property(link_libs ${target_project} INTERFACE_LINK_LIBRARIES)
-    if(link_libs)
-        foreach(lib_target ${link_libs})
-            if(TARGET ${lib_target})
-                _collect_include_dirs_from_target(${lib_target} extra_include_folder_list)
-            endif()
-        endforeach()
+    # get_target_property(interface_libs ${target_project} INTERFACE_LINK_LIBRARIES)
+    # if(interface_libs)
+    #     foreach(linterface_lib ${interface_libs})
+    #         if(TARGET ${linterface_lib})
+    #             collect_include_dirs_from_target(${linterface_lib} extra_include_folder_list)
+    #         endif()
+    #     endforeach()
+    # endif()
+    if(TARGET arieo_core)
+        collect_include_dirs_from_target(arieo_core extra_include_folder_list)
+    endif()
+    if(TARGET Arieo-Core::arieo_core)
+        collect_include_dirs_from_target(Arieo-Core::arieo_core extra_include_folder_list)
     endif()
 
     # Get C++ standard library include directories
@@ -89,8 +95,21 @@ function(project_interface_code_gen_parameters target_project)
     endif()
 
     # Add extra include files
+    # Find prerequisites.h from extra_include_folder_list
     set(extra_include_file_list)
-    list(APPEND extra_include_file_list $ENV{ARIEO_CORE_PACKAGE_INSTALL_FOLDER}/$ENV{ARIEO_PACKAGE_BUILD_HOST_PRESET}/include/base/prerequisites.h)
+    find_file(arieo_prerequisites_h_file
+        NAMES "prerequisites.h"
+        PATHS ${extra_include_folder_list}
+        PATH_SUFFIXES "base"
+        NO_DEFAULT_PATH
+        NO_CACHE
+    )
+    if(arieo_prerequisites_h_file)
+        list(APPEND extra_include_file_list "${arieo_prerequisites_h_file}")
+        message(STATUS "Found prerequisites.h for ${target_project}: ${arieo_prerequisites_h_file}")
+    else()
+        message(FATAL_ERROR "Could not find prerequisites.h in include dirs for ${target_project}")
+    endif()
 
     # Remove duplicates
     if(extra_include_folder_list)
@@ -106,6 +125,7 @@ function(project_interface_code_gen_parameters target_project)
     arieo_generate_interface_code(
         ${target_project}
         INTERFACE_HEADERS ${interface_headers}
+        
         EXTRA_INCLUDE_FILES ${extra_include_file_list}
         EXTRA_INCLUDE_FOLDERS ${extra_include_folder_list}
 
@@ -122,7 +142,7 @@ function(project_interface_code_gen_parameters target_project)
 endfunction()
 
 # Helper function to collect include directories from a target and its transitive dependencies
-function(_collect_include_dirs_from_target target_name out_list)
+function(collect_include_dirs_from_target target_name out_list)
     if(NOT TARGET ${target_name})
         return()
     endif()
@@ -142,6 +162,13 @@ function(_collect_include_dirs_from_target target_name out_list)
     get_target_property(transitive_libs ${target_name} INTERFACE_LINK_LIBRARIES)
     if(transitive_libs)
         foreach(trans_lib ${transitive_libs})
+            if(NOT TARGET ${trans_lib})
+                # For Namespace::target style libs, try to find_package to bring them into scope
+                if(trans_lib MATCHES "^([A-Za-z0-9_-]+)::.+")
+                    string(REGEX REPLACE "^([A-Za-z0-9_-]+)::.+" "\\1" _pkg_name "${trans_lib}")
+                    find_package(${_pkg_name} QUIET)
+                endif()
+            endif()
             if(TARGET ${trans_lib})
                 get_target_property(trans_includes ${trans_lib} INTERFACE_INCLUDE_DIRECTORIES)
                 if(trans_includes)
