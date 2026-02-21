@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/build_environment.cmake)
 
-ArieoPackage(
+ARIEO_PACKAGE(
     Arieo-BuildEnv
     CATEGORY 00_build
     COMPONENTS

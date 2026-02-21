@@ -41,21 +41,22 @@ function(project_dependencies_parameters target_project)
         message(FATAL_ERROR "Target ${target_project} does not exist. Cannot configure dependencies.")
     endif()
 
-    # Check if target is an INTERFACE library
-    get_target_property(target_type ${target_project} TYPE)
-    if(target_type STREQUAL "INTERFACE_LIBRARY")
-        set(is_interface_library TRUE)
-    else()
-        set(is_interface_library FALSE)
-    endif()
-
     if(DEFINED ARGUMENT_ARIEO_PACKAGES)
         foreach(ARGUMENT_PACKAGE IN LISTS ARGUMENT_ARIEO_PACKAGES)
             message(STATUS "Finding package: ${ARGUMENT_PACKAGE}")
+
+            # Check if ARUGMENT_PACKAGE target is exists
+            if(TARGET ${ARGUMENT_PACKAGE})
+                message(STATUS "Found target for package ${ARGUMENT_PACKAGE}")
+                continue()
+            endif()
+
+            # Other wise, try found it as a package
             find_package(${ARGUMENT_PACKAGE} REQUIRED)
             if(NOT ${ARGUMENT_PACKAGE}_FOUND)
                 message(FATAL_ERROR "Package ${ARGUMENT_PACKAGE} not found. Check CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
             endif()
+
         endforeach()
     endif()
 
@@ -83,53 +84,29 @@ function(project_dependencies_parameters target_project)
 
     # Add interfaces
     if(DEFINED ARGUMENT_INTERFACES)
-        if(is_interface_library)
-            target_link_libraries(
-                ${target_project} 
-                INTERFACE
-                    ${ARGUMENT_INTERFACES}
-            )
-        else()
-            target_link_libraries(
-                ${target_project} 
-                PRIVATE
-                    ${ARGUMENT_INTERFACES}
-            )
-        endif()
+        set_target_libraries(
+            ${target_project}
+            INTERFACE
+                ${ARGUMENT_INTERFACES}
+        )
     endif()
 
     # Add public libs (dependencies used in public headers)
     if(DEFINED ARGUMENT_PUBLIC_LIBS)
-        if(is_interface_library)
-            target_link_libraries(
-                ${target_project} 
-                INTERFACE
-                    ${ARGUMENT_PUBLIC_LIBS}
-            )
-        else()
-            target_link_libraries(
-                ${target_project} 
-                PUBLIC
-                    ${ARGUMENT_PUBLIC_LIBS}
-            )
-        endif()
+        set_target_libraries(
+            ${target_project}
+            PUBLIC
+                ${ARGUMENT_PUBLIC_LIBS}
+        )
     endif()
 
     # Add private libs
     if(DEFINED ARGUMENT_PRIVATE_LIBS)
-        if(is_interface_library)
-            target_link_libraries(
-                ${target_project} 
-                INTERFACE
-                    ${ARGUMENT_PRIVATE_LIBS}
-            )
-        else()
-            target_link_libraries(
-                ${target_project} 
-                PRIVATE
-                    ${ARGUMENT_PRIVATE_LIBS}
-            )
-        endif()
+        set_target_libraries(
+            ${target_project}
+            PRIVATE
+                ${ARGUMENT_PRIVATE_LIBS}
+        )
     endif()
 
     # Copy external libs to libs folder (not for INTERFACE libraries)
@@ -170,4 +147,37 @@ function(project_dependencies_parameters target_project)
             endforeach()
         endif()
     endif()
+endfunction()
+
+function(set_target_libraries target_project)
+    set(multiValueArgs 
+        PUBLIC
+        PRIVATE
+        INTERFACE
+    )
+    cmake_parse_arguments(
+        ARGUMENT
+        ""
+        ""
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+
+    # Check if target is an INTERFACE library
+    get_target_property(target_type ${target_project} TYPE)
+    if(target_type STREQUAL "INTERFACE_LIBRARY")
+        set(is_interface_library TRUE)
+    else()
+        set(is_interface_library FALSE)
+    endif()
+
+    target_link_libraries(
+        ${target_project}
+        PUBLIC
+            ${ARGUMENT_PUBLIC}
+        PRIVATE
+            ${ARGUMENT_PRIVATE}
+        INTERFACE
+            ${ARGUMENT_INTERFACE}
+    )
 endfunction()

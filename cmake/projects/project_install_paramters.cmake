@@ -17,6 +17,11 @@ function(project_install_paramters target_project)
         message(FATAL_ERROR "ARIEO_PACKAGE_NAME variable is not defined")
     endif()
     
+    # Determine package category for config files from CMAKE_INSTALL_PREFIX variable
+    if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+        message(FATAL_ERROR "CMAKE_INSTALL_PREFIX variable is not defined")
+    endif()
+
     # Track all targets for this package using a cache variable
     # This allows multiple targets to be accumulated under the same package
     if(NOT DEFINED ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME})

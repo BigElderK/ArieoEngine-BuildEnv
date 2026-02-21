@@ -10,7 +10,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/projects/project_interface_code_gen_parameters
 include(${CMAKE_CURRENT_LIST_DIR}/projects/project_install_paramters.cmake)
 
 # Main dispatcher function
-function(arieo_engine_project target_project)
+function(ARIEO_ENGINE_PROJECT target_project)
     set(oneValueArgs 
         ALIAS
         PROJECT_TYPE

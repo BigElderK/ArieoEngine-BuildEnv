@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.31)
 
 # Main dispatcher function
-function(ArieoPackage package)
+function(ARIEO_PACKAGE package)
     set(oneValueArgs
         CATEGORY
     )
