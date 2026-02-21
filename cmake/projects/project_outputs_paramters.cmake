@@ -21,7 +21,7 @@ function(project_outputs_paramters target_project)
         set(ARGUMENT_ARCHIVE_OUTPUT_DIR "$ENV{ARIEO_PACKAGES_BUILD_OUTPUT_DIR}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/lib/${CMAKE_BUILD_TYPE}")
     endif()
     if(NOT DEFINED ARGUMENT_LIBRARY_OUTPUT_DIR)
-        set(ARGUMENT_LIBRARY_OUTPUT_DIR "$ENV{ARIEO_PACKAGES_BUILD_OUTPUT_DIR}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/lib/${CMAKE_BUILD_TYPE}")
+        set(ARGUMENT_LIBRARY_OUTPUT_DIR "$ENV{ARIEO_PACKAGES_BUILD_OUTPUT_DIR}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/bin/${CMAKE_BUILD_TYPE}")
     endif()
 
     # Set output directories for binaries and libraries to the package output directory
@@ -33,7 +33,7 @@ function(project_outputs_paramters target_project)
             LIBRARY_OUTPUT_DIRECTORY ${ARGUMENT_LIBRARY_OUTPUT_DIR}
     )
 
-    # Copy include files to the package output directory using a custom target
+    # Copy include files to the package output directory using a custom target  
     # set(OUTPUT_INCLUDE_DIRS)
     # # Get public and interface include folders from target_project
     # get_target_property(PUBLIC_INCLUDE_DIRS ${target_project} INCLUDE_DIRECTORIES)
@@ -59,4 +59,4 @@ function(project_outputs_paramters target_project)
     #         add_dependencies(${target_project} ${copy_target_name})
     #     endif()
     # endforeach()
-endfunction()
+endfunction()   
