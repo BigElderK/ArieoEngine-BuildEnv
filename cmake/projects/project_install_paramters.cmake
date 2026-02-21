@@ -1,11 +1,7 @@
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 function(project_install_paramters target_project)
-    set(oneValueArgs 
-        RUNTIME_INSTALL_DIR
-        ARCHIVE_INSTALL_DIR
-        LIBRARY_INSTALL_DIR
-        INCLUDE_INSTALL_DIR
+    set(oneValueArgs ""
     )
 
     cmake_parse_arguments(
@@ -15,20 +11,6 @@ function(project_install_paramters target_project)
         ""
         ${ARGN}
     )
-
-    #set default output directories if not provided
-    if(NOT DEFINED ARGUMENT_RUNTIME_INSTALL_DIR)
-        set(ARGUMENT_RUNTIME_INSTALL_DIR "$ENV{ARIEO_PACKAGES_BUILD_INSTALL_DIR}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/bin/${CMAKE_BUILD_TYPE}")
-    endif()
-    if(NOT DEFINED ARGUMENT_ARCHIVE_INSTALL_DIR)
-        set(ARGUMENT_ARCHIVE_INSTALL_DIR "$ENV{ARIEO_PACKAGES_BUILD_INSTALL_DIR}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/lib/${CMAKE_BUILD_TYPE}")
-    endif()
-    if(NOT DEFINED ARGUMENT_LIBRARY_INSTALL_DIR)
-        set(ARGUMENT_LIBRARY_INSTALL_DIR "$ENV{ARIEO_PACKAGES_BUILD_INSTALL_DIR}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/lib/${CMAKE_BUILD_TYPE}")
-    endif()
-    if(NOT DEFINED ARGUMENT_INCLUDE_INSTALL_DIR)
-        set(ARGUMENT_INCLUDE_INSTALL_DIR "$ENV{ARIEO_PACKAGES_BUILD_INSTALL_DIR}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/include") # Default to static library if not specified
-    endif()
 
     # Determine package name for config files from ARIEO_PACKAGE_NAME variable
     if(NOT DEFINED ARIEO_PACKAGE_NAME)
@@ -45,45 +27,50 @@ function(project_install_paramters target_project)
     
     message(STATUS "Registered target ${target_project} for package ${ARIEO_PACKAGE_NAME}")
     message(STATUS "Current targets for ${ARIEO_PACKAGE_NAME}: ${ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME}}")
-    
-    # Get include directories from target properties
-    get_target_property(PUBLIC_INCLUDE_DIRS ${target_project} INTERFACE_INCLUDE_DIRECTORIES)
-    
+
     # Install the library target
     # Note: INCLUDES DESTINATION only sets metadata (tells consumers where to look for headers)
     #       It does NOT copy any files - we need separate install(DIRECTORY) commands below
     # Libraries are installed to build-type subdirectories to support multi-config installs
     # IMPORTANT: Use ARIEO_PACKAGE_NAME for EXPORT to group all targets under same export
     # Note: Both LIBRARY (.so/.dylib) and RUNTIME (.dll) go to bin folder for unified runtime loading
+    set(install_archive_dir "${CMAKE_INSTALL_PREFIX}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/bin/${CMAKE_BUILD_TYPE}")
+    set(install_lib_dir "${CMAKE_INSTALL_PREFIX}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/lib/${CMAKE_BUILD_TYPE}")
+    set(install_runtime_dir "${CMAKE_INSTALL_PREFIX}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/bin/${CMAKE_BUILD_TYPE}")
+    set(install_includes_dir "${CMAKE_INSTALL_PREFIX}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/include")
+    set(install_cmake_dir "${CMAKE_INSTALL_PREFIX}/${ARIEO_PACKAGE_CATEGORY}/${ARIEO_PACKAGE_NAME}/${ARIEO_BUILD_CONFIGURE_PRESET}/cmake")
+
     install(TARGETS ${target_project}
         EXPORT ${ARIEO_PACKAGE_NAME}Targets
-        ARCHIVE DESTINATION ${ARGUMENT_ARCHIVE_INSTALL_DIR}
-        LIBRARY DESTINATION ${ARGUMENT_LIBRARY_INSTALL_DIR}
-        RUNTIME DESTINATION ${ARGUMENT_RUNTIME_INSTALL_DIR}
-        INCLUDES DESTINATION ${ARGUMENT_INCLUDE_INSTALL_DIR}
+        ARCHIVE DESTINATION ${install_archive_dir}
+        LIBRARY DESTINATION ${install_lib_dir}
+        RUNTIME DESTINATION ${install_runtime_dir}
+        INCLUDES DESTINATION ${install_includes_dir}
     )
 
     # Install public headers - actually copies the header files to the install destination
     # Extract paths from generator expressions
-    set(EXTRACTED_INCLUDE_DIRS "")
-    if(PUBLIC_INCLUDE_DIRS AND NOT PUBLIC_INCLUDE_DIRS STREQUAL "PUBLIC_INCLUDE_DIRS-NOTFOUND")
-        foreach(INCLUDE_DIR ${PUBLIC_INCLUDE_DIRS})
+    set(export_include_dirs "")
+    
+    # Get include directories from target properties
+    get_target_property(interface_include_dirs ${target_project} INTERFACE_INCLUDE_DIRECTORIES)
+    if(interface_include_dirs AND NOT interface_include_dirs STREQUAL "interface_include_dirs-NOTFOUND")
+        foreach(include_dir ${interface_include_dirs})
             # Extract path from $<BUILD_INTERFACE:path> generator expression
-            if(INCLUDE_DIR MATCHES "\\$<BUILD_INTERFACE:(.+)>")
-                list(APPEND EXTRACTED_INCLUDE_DIRS "${CMAKE_MATCH_1}")
-            elseif(NOT INCLUDE_DIR MATCHES "\\$<INSTALL_INTERFACE:")
+            if(include_dir MATCHES "\\$<BUILD_INTERFACE:(.+)>")
+                list(APPEND export_include_dirs "${CMAKE_MATCH_1}")
+            elseif(NOT include_dir MATCHES "\\$<INSTALL_INTERFACE:")
                 # If it's not a generator expression, use it directly
-                list(APPEND EXTRACTED_INCLUDE_DIRS "${INCLUDE_DIR}")
+                list(APPEND export_include_dirs "${include_dir}")
             endif()
         endforeach()
     endif()
     
-    set(PUBLIC_INCLUDE_DIRS "${EXTRACTED_INCLUDE_DIRS}")
-    if(PUBLIC_INCLUDE_DIRS)
-        foreach(INCLUDE_FOLDER ${PUBLIC_INCLUDE_DIRS})
-            if(EXISTS ${INCLUDE_FOLDER})
-                install(DIRECTORY ${INCLUDE_FOLDER}/
-                    DESTINATION ${ARGUMENT_INCLUDE_INSTALL_DIR}
+    if(export_include_dirs)
+        foreach(include_dir ${export_include_dirs})
+            if(EXISTS ${include_dir})
+                install(DIRECTORY ${include_dir}/
+                    DESTINATION ${install_includes_dir}
                     FILES_MATCHING
                     PATTERN "*.h"
                     PATTERN "*.hpp"
@@ -100,9 +87,8 @@ function(project_install_paramters target_project)
     install(EXPORT ${ARIEO_PACKAGE_NAME}Targets
         FILE ${ARIEO_PACKAGE_NAME}Targets.cmake
         NAMESPACE ${ARIEO_PACKAGE_NAME}::
-        DESTINATION cmake
+        DESTINATION ${install_cmake_dir}
     )
-    
 
     # Generate and install package configuration file
     # Use common template and substitute ARIEO_PACKAGE_NAME and target_project
@@ -141,7 +127,7 @@ function(project_install_paramters target_project)
     configure_package_config_file(
         ${CONFIG_TEMPLATE_FILE}
         ${CMAKE_CURRENT_BINARY_DIR}/${ARIEO_PACKAGE_NAME}Config.cmake
-        INSTALL_DESTINATION cmake
+        INSTALL_DESTINATION ${install_cmake_dir}
         PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR
     )
 
@@ -162,6 +148,6 @@ function(project_install_paramters target_project)
     install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/${ARIEO_PACKAGE_NAME}Config.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/${ARIEO_PACKAGE_NAME}ConfigVersion.cmake
-        DESTINATION cmake
+        DESTINATION ${install_cmake_dir}
     )
 endfunction()
