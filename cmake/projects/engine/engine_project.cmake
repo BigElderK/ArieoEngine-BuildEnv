@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.31)
 
 # Include specialized project type cmake files
-include(${CMAKE_CURRENT_LIST_DIR}/projects/project_basic_paramters.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/project_dependencies_parameters.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/project_sources_parameters.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/project_interface_parameters.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/project_outputs_paramters.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/project_interface_code_gen_parameters.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/projects/project_install_paramters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/engine_project_basic_paramters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/engine_project_dependencies_parameters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/engine_project_sources_parameters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/engine_project_interface_parameters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/engine_project_outputs_paramters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/engine_project_interface_code_gen_parameters.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/engine_project_install_paramters.cmake)
 
 # Main dispatcher function
 function(ARIEO_ENGINE_PROJECT target_project)
