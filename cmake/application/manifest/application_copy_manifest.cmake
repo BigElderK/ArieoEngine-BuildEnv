@@ -9,9 +9,9 @@ function(arieo_copy_manifest target_project manifest_file)
         return()
     endif()
 
-    get_filename_component(manifest_output_filename ${manifest_file} NAME_WE)
+    get_filename_component(manifest_output_filename ${manifest_file} NAME)
     get_property(manifest_output_dir TARGET ${target_project} PROPERTY RUNTIME_OUTPUT_DIRECTORY)
-    set(manifest_output_file "${manifest_output_dir}/${manifest_output_filename}.manifest.yaml")
+    set(manifest_output_file "${manifest_output_dir}/${manifest_output_filename}")
 
     # Add custom command to copy manifest
     add_custom_command(

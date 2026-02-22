@@ -35,28 +35,28 @@ function(get_cmake_project_info cmake_lists_path build_type out_project_name out
 endfunction()
 
 # Build cxx scripts for the given application project
-# Usage: arieo_build_cxx_scripts(<target_project> <script_folder>)
+# Usage: arieo_build_cxx_scripts(<target_project> <script_folder> <script_output_dir>)
 #   target_project: Name of the target project
 #   script_folder: Path to the content folder containing CMakeLists.txt files
-function(arieo_build_cxx_scripts target_project script_folder)
+#   script_output_dir: Base output directory for built scripts
+function(arieo_build_cxx_scripts target_project script_folder script_output_dir)
     if(NOT DEFINED script_folder)
+        return()
+    endif()
+
+    if(CMAKE_BUILD_TYPE STREQUAL "Content")
         return()
     endif()
     
     # Convert to lowercase for cmake build type
     string(TOLOWER ${CMAKE_BUILD_TYPE} cmake_build_type)
 
-    # Find all CMakeLists.txt under the content folder (for cxx script projects)
+    # Find all CMakeLists.txt under the cxx script folder
+    set(cxx_script_folder "${script_folder}/cxx")
     file(GLOB_RECURSE cmake_files
         LIST_DIRECTORIES false
-        "${script_folder}/CMakeLists.txt"
+        "${cxx_script_folder}/CMakeLists.txt"
     )
-    
-    # get output folder
-    get_property(project_output_dir TARGET ${target_project} PROPERTY RUNTIME_OUTPUT_DIRECTORY)
-    # Convert build config to lowercase for folder name
-    string(TOLOWER ${CMAKE_BUILD_TYPE} build_config_lower)
-    set(content_output_dir "${project_output_dir}/script/${build_config_lower}")
 
     set(cmake_project_output_files)
     foreach(cmake_file ${cmake_files})
@@ -72,26 +72,18 @@ function(arieo_build_cxx_scripts target_project script_folder)
         # Directory containing the CMakeLists
         get_filename_component(cmake_file_dir ${cmake_file} DIRECTORY)
 
-        # Get relative path to maintain directory structure
+        # Relative path from script_folder (includes cxx/ prefix, mirrors how content uses content_folder as base)
         file(RELATIVE_PATH relative_path "${script_folder}" ${cmake_file})
-        
-        # Set output path in content dir
-        set(script_output_dir_in_content "${content_output_dir}/${relative_path}")
-        get_filename_component(script_output_dir_in_content ${script_output_dir_in_content} DIRECTORY)
+        get_filename_component(relative_dir "${relative_path}" DIRECTORY)
+
+        # Set output path: script_output_dir / relative_dir(cxx/...) / build_type
+        set(script_project_output_dir "${script_output_dir}/${relative_dir}/${CMAKE_BUILD_TYPE}")
         get_filename_component(cmake_output_filename ${cmake_project_output_file} NAME_WE)
-        set(script_output_file_in_content "${script_output_dir_in_content}/${cmake_output_filename}.wasm")
+        set(script_output_file_in_content "${script_project_output_dir}/${cmake_output_filename}.wasm")
+        file(MAKE_DIRECTORY ${script_project_output_dir})
 
-        # Create output directory if needed
-        get_filename_component(script_output_dir_in_content ${script_output_file_in_content} DIRECTORY)
-        file(MAKE_DIRECTORY ${script_output_dir_in_content})
-
-        # Create a unique build dir under the superbuild binary dir
-        file(RELATIVE_PATH rel_dir "${script_folder}" ${cmake_file_dir})
-        if(rel_dir STREQUAL "")
-            set(rel_dir "root")
-        endif()
-
-        set(ext_build_dir "${CMAKE_CURRENT_BINARY_DIR}/external_cxx_builds/${rel_dir}")
+        # Create a unique build dir under the superbuild binary dir (relative_dir always includes cxx/ prefix)
+        set(ext_build_dir "${CMAKE_CURRENT_BINARY_DIR}/external_cxx_builds/${relative_dir}")
 
         message(VERBOSE "External CXX build dir for ${cmake_file}: ${ext_build_dir}")
 
@@ -99,7 +91,7 @@ function(arieo_build_cxx_scripts target_project script_folder)
         add_custom_target(
             ${target_project}_build_${cmake_project_name} ALL
             COMMAND ${CMAKE_COMMAND} -E make_directory ${ext_build_dir}
-            COMMAND ${CMAKE_COMMAND} -E env "ARIEO_BUILDENV_PACKAGE_INSTALL_FOLDER=$env{ARIEO_BUILD_ENV_PACKAGES_OUTPUT_DIR}"
+            COMMAND ${CMAKE_COMMAND} -E env "ARIEO_BUILD_ENV_PACKAGES_OUTPUT_DIR=$ENV{ARIEO_BUILD_ENV_PACKAGES_OUTPUT_DIR}"
                 ${CMAKE_COMMAND} -S ${cmake_file_dir} -B ${ext_build_dir} -G "Ninja" 
                 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                 -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY

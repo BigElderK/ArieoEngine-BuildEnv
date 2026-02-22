@@ -1,6 +1,6 @@
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 function(project_install_paramters target_project)
+    include(GNUInstallDirs)
     set(oneValueArgs ""
     )
 

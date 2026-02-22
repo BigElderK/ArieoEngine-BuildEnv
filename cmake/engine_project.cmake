@@ -68,6 +68,8 @@ function(ARIEO_ENGINE_PROJECT target_project)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
     message(STATUS "Arieo MSVC CRT LIB: MultiThreadedDLL")
 
+    add_dependencies(${ARIEO_PACKAGE_NAME} ${target_project})
+
     # Add definitions for interface libraries
     project_basic_paramters(${target_project} ${ARGN})
 

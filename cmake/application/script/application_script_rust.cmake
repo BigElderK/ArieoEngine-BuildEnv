@@ -43,11 +43,16 @@ function(get_cargo_info cargo_toml_path build_type out_package_name out_wasm_pat
 endfunction()
 
 # Build rust scripts for the given application project
-# Usage: arieo_build_rust_scripts(<target_project> <script_folder>)
+# Usage: arieo_build_rust_scripts(<target_project> <script_folder> <script_output_dir>)
 #   target_project: Name of the target project
 #   script_folder: Path to the content folder containing Cargo.toml files
-function(arieo_build_rust_scripts target_project script_folder)
+#   script_output_dir: Base output directory for built scripts
+function(arieo_build_rust_scripts target_project script_folder script_output_dir)
     if(NOT DEFINED script_folder)
+        return()
+    endif()
+
+    if(CMAKE_BUILD_TYPE STREQUAL "Content")
         return()
     endif()
     
@@ -60,16 +65,11 @@ function(arieo_build_rust_scripts target_project script_folder)
         set(rust_build_type "release")
     endif()
 
+    set(rust_script_folder "${script_folder}/rust")
     file(GLOB_RECURSE cargo_files 
         LIST_DIRECTORIES false
-        "${script_folder}/Cargo.toml"
+        "${rust_script_folder}/Cargo.toml"
     )
-
-    # get output folder
-    get_property(project_output_dir TARGET ${target_project} PROPERTY RUNTIME_OUTPUT_DIRECTORY)
-    # Convert build config to lowercase for folder name
-    string(TOLOWER ${CMAKE_BUILD_TYPE} build_config_lower)
-    set(content_output_dir "${project_output_dir}/script/${build_config_lower}")
 
     set(cargo_project_output_files)
     foreach(cargo_file ${cargo_files})
@@ -81,18 +81,15 @@ function(arieo_build_rust_scripts target_project script_folder)
         )
         message(VERBOSE "WASM output path for ${cargo_file}: ${cargo_build_output_file}")
 
-        # Get relative path to maintain directory structure
+        # Relative path from script_folder (includes rust/ prefix, mirrors how content uses content_folder as base)
         file(RELATIVE_PATH relative_path "${script_folder}" ${cargo_file})
-        
-        # Set output path (same relative path but in output dir)
-        set(script_output_dir_in_content "${content_output_dir}/${relative_path}")
-        get_filename_component(script_output_dir_in_content ${script_output_dir_in_content} DIRECTORY)
-        get_filename_component(cargo_output_filename ${cargo_build_output_file} NAME_WE)
-        set(script_output_file_in_content "${script_output_dir_in_content}/${cargo_output_filename}.wasm")
+        get_filename_component(relative_dir "${relative_path}" DIRECTORY)
 
-        # Create output directory if needed
-        get_filename_component(script_output_dir_in_content ${script_output_file_in_content} DIRECTORY)
-        file(MAKE_DIRECTORY ${script_output_dir_in_content})
+        # Set output path: script_output_dir / relative_dir(rust/...) / build_type
+        set(script_project_output_dir "${script_output_dir}/${relative_dir}/${CMAKE_BUILD_TYPE}")
+        get_filename_component(cargo_output_filename ${cargo_build_output_file} NAME_WE)
+        set(script_output_file_in_content "${script_project_output_dir}/${cargo_output_filename}.wasm")
+        file(MAKE_DIRECTORY ${script_project_output_dir})
 
         # Always call cargo to configure and build the project (using custom target to always run)
         # Use package name from Cargo.toml for target name, sanitize it for CMake

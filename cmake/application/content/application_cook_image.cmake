@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.31)
 
 # Cook images for the given application project
-# Usage: arieo_cook_images(<target_project> <content_folder>)
+# Usage: arieo_cook_images(<target_project> <content_folder> <content_output_dir>)
 #   target_project: Name of the target project
 #   content_folder: Path to the content folder containing image files
-function(arieo_cook_images target_project content_folder)
+#   content_output_dir: Path to the output directory for cooked content
+function(arieo_cook_images target_project content_folder content_output_dir)
     if(NOT DEFINED content_folder)
         return()
     endif()
@@ -15,10 +16,6 @@ function(arieo_cook_images target_project content_folder)
         "${content_folder}/*.jpg"
         "${content_folder}/*.tga"
     )
-
-    # get output folder
-    get_property(project_output_dir TARGET ${target_project} PROPERTY RUNTIME_OUTPUT_DIRECTORY)
-    set(content_output_dir "${project_output_dir}/content")
 
     set(image_output_files)
     foreach(image_src_file ${image_src_files})

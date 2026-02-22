@@ -59,7 +59,6 @@ function(project_basic_paramters target_project)
     if(NOT TARGET ${ARIEO_PACKAGE_NAME})
         message(FATAL_ERROR "ARIEO_PACKAGE_NAME is not defined. Make sure to call ARIEO_PACKAGE before defining projects.")
     endif()
-    add_dependencies(${ARIEO_PACKAGE_NAME} ${target_project})
 
     # set common compile definitions AFTER target is created
     # INTERFACE libraries require INTERFACE visibility

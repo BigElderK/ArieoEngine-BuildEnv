@@ -53,25 +53,25 @@ function(get_csproj_info csproj_path build_type out_project_name out_wasm_path)
 endfunction()
 
 # Build .NET scripts for the given application project
-# Usage: arieo_build_dotnet_scripts(<target_project> <script_folder>)
+# Usage: arieo_build_dotnet_scripts(<target_project> <script_folder> <script_output_dir>)
 #   target_project: Name of the target project
 #   script_folder: Path to the content folder containing .csproj files
-function(arieo_build_dotnet_scripts target_project script_folder)
+#   script_output_dir: Base output directory for built scripts
+function(arieo_build_dotnet_scripts target_project script_folder script_output_dir)
     if(NOT DEFINED script_folder)
         return()
     endif()
 
-    # Find all .csproj files under the content folder
+    if(CMAKE_BUILD_TYPE STREQUAL "Content")
+        return()
+    endif()
+
+    # Find all .csproj files under the dotnet script folder
+    set(dotnet_script_folder "${script_folder}/dotnet")
     file(GLOB_RECURSE csproj_files
         LIST_DIRECTORIES false
-        "${script_folder}/*.csproj"
+        "${dotnet_script_folder}/*.csproj"
     )
-    
-    # get output folder
-    get_property(project_output_dir TARGET ${target_project} PROPERTY RUNTIME_OUTPUT_DIRECTORY)
-    # Convert build config to lowercase for folder name
-    string(TOLOWER ${CMAKE_BUILD_TYPE} build_config_lower)
-    set(content_output_dir "${project_output_dir}/script/${build_config_lower}")
 
     set(csproj_output_files)
     foreach(csproj_file ${csproj_files})
@@ -84,21 +84,15 @@ function(arieo_build_dotnet_scripts target_project script_folder)
         )
         message(VERBOSE "WASM output path for ${csproj_file}: ${csproj_build_output_file}")
 
-        # Directory containing the .csproj
-        get_filename_component(cmake_file_dir ${csproj_file} DIRECTORY)
-
-        # Get relative path to maintain directory structure
+        # Relative path from script_folder (includes dotnet/ prefix, mirrors how content uses content_folder as base)
         file(RELATIVE_PATH relative_path "${script_folder}" ${csproj_file})
-        
-        # Set output path in content dir
-        set(script_output_dir_in_content "${content_output_dir}/${relative_path}")
-        get_filename_component(script_output_dir_in_content ${script_output_dir_in_content} DIRECTORY)
-        get_filename_component(csproj_output_filename ${csproj_build_output_file} NAME_WE)
-        set(script_output_file_in_content "${script_output_dir_in_content}/${csproj_output_filename}.wasm")
+        get_filename_component(relative_dir "${relative_path}" DIRECTORY)
 
-        # Create output directory if needed
-        get_filename_component(script_output_dir_in_content ${script_output_file_in_content} DIRECTORY)
-        file(MAKE_DIRECTORY ${script_output_dir_in_content})
+        # Set output path: script_output_dir / relative_dir(dotnet/...) / build_type
+        set(script_project_output_dir "${script_output_dir}/${relative_dir}/${CMAKE_BUILD_TYPE}")
+        get_filename_component(csproj_output_filename ${csproj_build_output_file} NAME_WE)
+        set(script_output_file_in_content "${script_project_output_dir}/${csproj_output_filename}.wasm")
+        file(MAKE_DIRECTORY ${script_project_output_dir})
 
         # Always call dotnet to configure and build the project (using custom target to always run)
         # Use project name from .csproj filename for target name
