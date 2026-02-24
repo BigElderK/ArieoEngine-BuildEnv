@@ -99,6 +99,7 @@ function(arieo_build_cxx_scripts target_project script_folder script_output_dir)
             COMMENT "Compiling ${relative_path} to WebAssembly (${CMAKE_BUILD_TYPE})"
             COMMAND ${CMAKE_COMMAND} -E copy ${cmake_project_output_file} ${script_output_file_in_content}
             COMMENT "Copying ${cmake_project_output_file} to ${script_output_file_in_content}"
+            BYPRODUCTS ${script_output_file_in_content}
             USES_TERMINAL
             VERBATIM
         )

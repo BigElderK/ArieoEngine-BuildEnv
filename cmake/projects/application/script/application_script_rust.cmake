@@ -114,6 +114,7 @@ function(arieo_build_rust_scripts target_project script_folder script_output_dir
             COMMENT "Compiling ${relative_path} to WebAssembly (${rust_build_type})"
             COMMAND ${CMAKE_COMMAND} -E copy ${cargo_build_output_file} ${script_output_file_in_content}
             COMMENT "Copying ${cargo_build_output_file} to ${script_output_file_in_content}"
+            BYPRODUCTS ${script_output_file_in_content}
             VERBATIM
         )
 

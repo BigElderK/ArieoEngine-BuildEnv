@@ -115,6 +115,7 @@ function(arieo_build_dotnet_scripts target_project script_folder script_output_d
             COMMENT "Building ${relative_path} to WebAssembly (${CMAKE_BUILD_TYPE})"
             COMMAND ${CMAKE_COMMAND} -E copy ${csproj_build_output_file} ${script_output_file_in_content}
             COMMENT "Copying ${csproj_build_output_file} to ${script_output_file_in_content}"
+            BYPRODUCTS ${script_output_file_in_content}
             VERBATIM
         )
 
