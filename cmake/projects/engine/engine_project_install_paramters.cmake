@@ -22,16 +22,17 @@ function(project_install_paramters target_project)
         message(FATAL_ERROR "CMAKE_INSTALL_PREFIX variable is not defined")
     endif()
 
-    # Track all targets for this package using a cache variable
-    # This allows multiple targets to be accumulated under the same package
-    if(NOT DEFINED ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME})
-        set(ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME} "" CACHE INTERNAL "List of targets for package ${ARIEO_PACKAGE_NAME}")
+    # Track all targets for this package using a global property
+    # This allows multiple targets to be accumulated under the same package within a single CMake run
+    get_property(current_targets GLOBAL PROPERTY ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME})
+    if(NOT current_targets)
+        set(current_targets "")
     endif()
-    list(APPEND ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME} ${target_project})
-    set(ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME} "${ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME}}" CACHE INTERNAL "List of targets for package ${ARIEO_PACKAGE_NAME}")
+    list(APPEND current_targets ${target_project})
+    set_property(GLOBAL PROPERTY ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME} "${current_targets}")
     
     message(STATUS "Registered target ${target_project} for package ${ARIEO_PACKAGE_NAME}")
-    message(STATUS "Current targets for ${ARIEO_PACKAGE_NAME}: ${ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME}}")
+    message(STATUS "Current targets for ${ARIEO_PACKAGE_NAME}: ${current_targets}")
 
     # Install the library target
     # Note: INCLUDES DESTINATION only sets metadata (tells consumers where to look for headers)
@@ -103,8 +104,9 @@ function(project_install_paramters target_project)
     set(CONFIG_TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/templates/project_install_config.cmake.in)
     
     # Build list of all exported targets with package namespace
+    get_property(all_package_targets GLOBAL PROPERTY ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME})
     set(package_exported_targets "")
-    foreach(target ${ARIEO_PACKAGE_TARGETS_${ARIEO_PACKAGE_NAME}})
+    foreach(target ${all_package_targets})
         if(package_exported_targets)
             string(APPEND package_exported_targets " ")
         endif()
