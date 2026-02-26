@@ -64,6 +64,13 @@ namespace Arieo::Base
             return count;
         }
 
+        // Compile-time DLL boundary safety check for all member function signatures
+        static constexpr bool isDLLBoundarySafe = true
+{{#methods}}
+            && DLLSafeMemberFunctionCheck<decltype(&TInterface::{{name}})>::value
+{{/methods}}
+            ;
+
         // Iterator for member functions - accepts a callback that processes each function pointer
         template<typename Callback>
         static void iteratorMemberFunctions(Callback&& callback)
