@@ -67,7 +67,7 @@ namespace Arieo::Base
         // Compile-time DLL boundary safety check for all member function signatures
         static constexpr bool isDLLBoundarySafe = true
 {{#methods}}
-            && DLLSafeMemberFunctionCheck<decltype(&TInterface::{{name}})>::value
+            && Base::ct::DLLSafeMemberFunctionCheck<decltype(&TInterface::{{name}})>::value
 {{/methods}}
             ;
 
